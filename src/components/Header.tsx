@@ -71,15 +71,12 @@ const Header: React.FC = () => {
               >
                 Archiv
               </Link>
-              <button
-                onClick={() => {
-                  // This will trigger the contact modal
-                  document.getElementById('contact-modal')?.classList.remove('hidden');
-                }}
+              <Link 
+                to="/kontakt" 
                 className="hover-link text-sm font-medium text-stone-900 transition-colors hover:text-stone-600"
               >
                 Kontakt
-              </button>
+              </Link>
             </nav>
             
             {/* Mobile menu button */}
@@ -125,16 +122,13 @@ const Header: React.FC = () => {
           >
             Archiv
           </Link>
-          <button
-            onClick={() => {
-              setIsMenuOpen(false);
-              // This will trigger the contact modal
-              document.getElementById('contact-modal')?.classList.remove('hidden');
-            }}
-            className="block w-full text-left py-2 text-base font-medium text-stone-900 hover:bg-stone-50 hover:text-stone-700"
+          <Link
+            to="/kontakt"
+            className="block py-2 text-base font-medium text-stone-900 hover:bg-stone-50 hover:text-stone-700"
+            onClick={() => setIsMenuOpen(false)}
           >
             Kontakt
-          </button>
+          </Link>
         </div>
       </motion.div>
     </motion.header>

@@ -1,8 +1,7 @@
 
 import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import Header from './Header';
-import ContactModal from './ContactModal';
 import AnimatedTransition from './AnimatedTransition';
 
 interface LayoutProps {
@@ -36,20 +35,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </p>
             </div>
             <div className="flex items-center space-x-6">
-              <button
-                onClick={() => {
-                  document.getElementById('contact-modal')?.classList.remove('hidden');
-                }}
+              <Link
+                to="/kontakt"
                 className="text-sm text-stone-500 hover:text-stone-800 hover-link transition-colors"
               >
                 Kontakt
-              </button>
+              </Link>
+              <Link
+                to="/impressum"
+                className="text-sm text-stone-500 hover:text-stone-800 hover-link transition-colors"
+              >
+                Impressum
+              </Link>
+              <Link
+                to="/datenschutz"
+                className="text-sm text-stone-500 hover:text-stone-800 hover-link transition-colors"
+              >
+                Datenschutz
+              </Link>
             </div>
           </div>
         </div>
       </footer>
-      
-      <ContactModal />
     </div>
   );
 };
