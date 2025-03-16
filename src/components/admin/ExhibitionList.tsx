@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useSupabase } from '@/lib/supabase';
 import { 
   AlertTriangle, Edit, Trash2, Eye, 
-  Calendar, Clock, Archive, Search, Image 
+  Calendar, Clock, Archive, Search, Image, Plus 
 } from 'lucide-react';
 import {
   Table,

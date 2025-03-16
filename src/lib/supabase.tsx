@@ -4,15 +4,16 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Define types for our database
 export type SupportingContributor = {
-  id: number;
+  id?: number;  // Changed from required to optional
+  exhibitionId?: number;
   type: string;
   name: string;
   icon: string;
 };
 
 export type ProgramEntry = {
-  id: number;
-  exhibitionId: number;
+  id?: number;  // Changed from required to optional
+  exhibitionId?: number;
   day: string;
   timeframe: string;
   title: string;
