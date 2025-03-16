@@ -1,13 +1,28 @@
 
 import React from 'react';
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Layers, Plus, LayoutDashboard } from 'lucide-react';
+import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { Layers, Plus, LayoutDashboard, LogOut } from 'lucide-react';
 import AdminDashboard from '../components/admin/AdminDashboard';
 import ExhibitionForm from '../components/admin/ExhibitionForm';
 import ExhibitionList from '../components/admin/ExhibitionList';
+import Login from '../components/admin/Login';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
-const Admin = () => {
+// Protected route component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/admin/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+const AdminLayout = () => {
   const location = useLocation();
+  const { logout } = useAuth();
   
   return (
     <div className="min-h-screen bg-stone-50">
@@ -26,6 +41,15 @@ const Admin = () => {
               <Link to="/" className="text-sm text-stone-300 hover:text-white">
                 Zur Website
               </Link>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-stone-300 hover:text-white"
+                onClick={logout}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Abmelden
+              </Button>
             </nav>
           </div>
         </div>
@@ -84,6 +108,21 @@ const Admin = () => {
         </main>
       </div>
     </div>
+  );
+};
+
+const Admin = () => {
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/*" element={
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
+        } />
+      </Routes>
+    </AuthProvider>
   );
 };
 

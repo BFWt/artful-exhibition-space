@@ -1,26 +1,33 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, User, Music } from 'lucide-react';
-import { Exhibition } from '../data/exhibitions';
-import ExhibitionTimeline from './ExhibitionTimeline';
+import { CalendarDays, User, Music, Coffee } from 'lucide-react';
+import { Exhibition } from '@/lib/supabase';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
 
 interface CurrentExhibitionProps {
   exhibition: Exhibition;
+  isPast?: boolean;
 }
 
-const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition }) => {
+const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPast = false }) => {
   const [imageLoaded, setImageLoaded] = React.useState(false);
   
   const {
     title,
-    germanDate,
+    subtitle,
     description,
     coverImage,
     artist,
-    djs,
-    timeline,
+    contributors,
+    program,
+    createdAt
   } = exhibition;
+
+  // Format the date
+  const formattedDate = createdAt ? 
+    format(new Date(createdAt), 'EEEE, d. MMMM yyyy', { locale: de }) : '';
 
   return (
     <div className="overflow-hidden py-8 md:py-12">
@@ -32,12 +39,14 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition }) => 
       >
         <div className="text-center mb-6">
           <motion.span 
-            className="tag text-xs mb-2 uppercase tracking-wider bg-stone-100 text-stone-700 px-3 py-1"
+            className={`tag text-xs mb-2 uppercase tracking-wider px-3 py-1 ${
+              isPast ? 'bg-stone-200 text-stone-600' : 'bg-stone-100 text-stone-700'
+            }`}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            Aktuelle Ausstellung
+            {isPast ? 'Letzte Ausstellung' : 'Aktuelle Ausstellung'}
           </motion.span>
           <motion.h2 
             className="mt-2 font-serif text-3xl font-medium tracking-tight text-stone-900 sm:text-4xl"
@@ -47,6 +56,16 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition }) => 
           >
             {title}
           </motion.h2>
+          {subtitle && (
+            <motion.p
+              className="mt-2 text-xl text-stone-600"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              {subtitle}
+            </motion.p>
+          )}
         </div>
         
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -69,7 +88,7 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition }) => 
               <div className="flex flex-col text-white">
                 <div className="flex items-center space-x-2 text-white/90 mb-2">
                   <CalendarDays className="h-4 w-4" />
-                  <span>{germanDate}</span>
+                  <span>{formattedDate}</span>
                 </div>
                 {artist && (
                   <div className="flex items-center space-x-2 text-white/90">
@@ -77,10 +96,15 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition }) => 
                     <span>{artist}</span>
                   </div>
                 )}
-                {djs && djs.length > 0 && (
+                {contributors && contributors.length > 0 && contributors.some(c => c.type === 'Music' || c.type === 'Musik') && (
                   <div className="flex items-center space-x-2 text-white/90 mt-1">
                     <Music className="h-4 w-4" />
-                    <span>{djs.join(', ')}</span>
+                    <span>
+                      {contributors
+                        .filter(c => c.type === 'Music' || c.type === 'Musik')
+                        .map(c => c.name)
+                        .join(', ')}
+                    </span>
                   </div>
                 )}
               </div>
@@ -101,15 +125,55 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition }) => 
               <p className="text-stone-600">{description}</p>
             </div>
             
-            <div className="mt-4">
-              <h3 className="font-serif text-xl font-medium text-stone-900 mb-2">
-                Programm
-              </h3>
-              <p className="text-sm text-stone-500 mb-2">
-                {germanDate}
-              </p>
-              <ExhibitionTimeline events={timeline} />
-            </div>
+            {program && program.length > 0 && (
+              <div className="mt-4">
+                <h3 className="font-serif text-xl font-medium text-stone-900 mb-2">
+                  Programm
+                </h3>
+                <p className="text-sm text-stone-500 mb-2">
+                  {formattedDate}
+                </p>
+                <div className="space-y-4">
+                  {program.map((event, index) => (
+                    <div key={index} className="border-l-2 border-stone-200 pl-4 py-1">
+                      <div className="flex flex-col">
+                        <div className="flex items-center text-stone-700 font-medium">
+                          <span>{event.timeframe}</span>
+                        </div>
+                        <div className="mt-1">
+                          <h4 className="font-medium">{event.title}</h4>
+                          {event.description && (
+                            <p className="text-sm text-stone-600 mt-1">{event.description}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {contributors && contributors.length > 0 && (
+              <div className="mt-6">
+                <h3 className="font-serif text-xl font-medium text-stone-900 mb-2">
+                  Mitwirkende
+                </h3>
+                <div className="flex flex-wrap gap-3 mt-2">
+                  {contributors.map((contributor, index) => (
+                    <div 
+                      key={index}
+                      className="bg-stone-100 rounded-full px-3 py-1 text-sm flex items-center"
+                    >
+                      {contributor.icon === 'music' && <Music className="h-3 w-3 mr-1" />}
+                      {contributor.icon === 'user' && <User className="h-3 w-3 mr-1" />}
+                      {contributor.icon === 'coffee' && <Coffee className="h-3 w-3 mr-1" />}
+                      <span className="mr-1 font-medium">{contributor.type}:</span>
+                      <span>{contributor.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </motion.div>
         </div>
       </motion.div>

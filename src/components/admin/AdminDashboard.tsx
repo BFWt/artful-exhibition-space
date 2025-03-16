@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Layers, Calendar, Clock, AlertTriangle } from 'lucide-react';
+import { Layers, Calendar, Clock, Archive, AlertTriangle, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSupabase } from '@/lib/supabase';
 

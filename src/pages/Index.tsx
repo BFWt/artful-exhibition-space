@@ -3,11 +3,10 @@ import React, { useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import CurrentExhibition from '../components/CurrentExhibition';
 import ExhibitionCard from '../components/ExhibitionCard';
-import { getCurrentExhibition, getUpcomingExhibitions } from '../data/exhibitions';
+import { useSupabase } from '@/lib/supabase';
 
 const Index = () => {
-  const currentExhibition = getCurrentExhibition();
-  const upcomingExhibitions = getUpcomingExhibitions();
+  const { exhibitions, isLoading } = useSupabase();
   
   const headerRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
@@ -34,6 +33,28 @@ const Index = () => {
   };
   
   const titleText = "Alter Kiosk Berlin";
+  
+  // Get current exhibition
+  const currentExhibition = exhibitions?.find(e => e.state === 'current');
+  
+  // Get newest past exhibition if no current exhibition
+  const newestPastExhibition = !currentExhibition ? 
+    exhibitions?.filter(e => e.state === 'past')
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0] : null;
+  
+  // Get upcoming exhibitions
+  const upcomingExhibitions = exhibitions?.filter(e => e.state === 'upcoming') || [];
+  
+  // Display exhibition will be current or the newest past
+  const displayExhibition = currentExhibition || newestPastExhibition;
+  
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-stone-800"></div>
+      </div>
+    );
+  }
   
   return (
     <>
@@ -73,38 +94,47 @@ const Index = () => {
         </div>
       </div>
       
-      {/* Current Exhibition */}
-      {currentExhibition && (
-        <CurrentExhibition exhibition={currentExhibition} />
+      {/* Current Exhibition or Newest Past Exhibition */}
+      {displayExhibition && (
+        <CurrentExhibition 
+          exhibition={displayExhibition}
+          isPast={displayExhibition.state === 'past'} 
+        />
       )}
       
       {/* Upcoming Exhibitions */}
-      {upcomingExhibitions.length > 0 && (
-        <div className="bg-stone-50 py-12">
-          <motion.div 
-            className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="text-center mb-8">
-              <h2 className="font-serif text-3xl font-medium tracking-tight text-stone-900">
-                Kommende Ausstellungen
-              </h2>
-              <p className="mt-2 text-stone-600">
-                Entdecken Sie unsere bevorstehenden Ausstellungen und Veranstaltungen
-              </p>
-            </div>
-            
+      <div className="bg-stone-50 py-12">
+        <motion.div 
+          className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="text-center mb-8">
+            <h2 className="font-serif text-3xl font-medium tracking-tight text-stone-900">
+              Kommende Ausstellungen
+            </h2>
+            <p className="mt-2 text-stone-600">
+              Entdecken Sie unsere bevorstehenden Ausstellungen und Veranstaltungen
+            </p>
+          </div>
+          
+          {upcomingExhibitions.length > 0 ? (
             <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {upcomingExhibitions.map((exhibition) => (
                 <ExhibitionCard key={exhibition.id} exhibition={exhibition} />
               ))}
             </div>
-          </motion.div>
-        </div>
-      )}
+          ) : (
+            <div className="text-center py-10 text-stone-500">
+              Momentan sind keine kommenden Ausstellungen geplant.
+              <br />
+              Besuchen Sie uns bald wieder für Updates.
+            </div>
+          )}
+        </motion.div>
+      </div>
     </>
   );
 };

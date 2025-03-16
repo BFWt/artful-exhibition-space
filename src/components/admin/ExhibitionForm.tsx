@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSupabase, Exhibition, SupportingContributor, ProgramEntry } from '@/lib/supabase';
@@ -36,7 +35,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Image, Plus, X, Music, User, Coffee, AlertTriangle, Calendar } from 'lucide-react';
 
-// Define form schema using zod
 const formSchema = z.object({
   title: z.string().min(1, 'Titel ist erforderlich'),
   subtitle: z.string().optional(),
@@ -99,7 +97,6 @@ const ExhibitionForm = () => {
     name: 'program'
   });
 
-  // Load exhibition data if editing
   useEffect(() => {
     if (isEditing && exhibitions) {
       const exhibition = exhibitions.find(e => e.id === Number(id));
@@ -122,18 +119,18 @@ const ExhibitionForm = () => {
     }
   }, [isEditing, exhibitions, id, form]);
 
-  const onSubmit = async (data: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     setUploading(true);
     try {
-      // Handle cover image upload if changed
-      let coverImageUrl = data.coverImage;
+      console.log("Form values before submission:", values);
+      
+      let coverImageUrl = values.coverImage;
       if (coverImageFile) {
         const url = await uploadImage(coverImageFile, 'cover');
         if (url) coverImageUrl = url;
       }
       
-      // Handle gallery images upload if changed
-      let galleryImagesUrls = [...(data.galleryImages || [])];
+      let galleryImagesUrls = [...(values.galleryImages || [])];
       if (galleryImageFiles.length > 0) {
         for (let i = 0; i < galleryImageFiles.length; i++) {
           const url = await uploadImage(galleryImageFiles[i], 'gallery');
@@ -141,11 +138,34 @@ const ExhibitionForm = () => {
         }
       }
       
+      const contributors = values.contributors?.map(contributor => ({
+        id: contributor.id,
+        type: contributor.type,
+        name: contributor.name,
+        icon: contributor.icon
+      })) || [];
+      
+      const program = values.program?.map(item => ({
+        id: item.id,
+        day: item.day,
+        timeframe: item.timeframe,
+        title: item.title,
+        description: item.description || ''
+      })) || [];
+      
       const exhibitionData = {
-        ...data,
+        title: values.title,
+        subtitle: values.subtitle || '',
+        description: values.description,
+        artist: values.artist,
+        state: values.state,
         coverImage: coverImageUrl,
         galleryImages: galleryImagesUrls,
+        contributors: contributors,
+        program: program
       };
+      
+      console.log("Exhibition data to save:", exhibitionData);
       
       if (isEditing) {
         await updateExhibition(Number(id), exhibitionData);
@@ -174,7 +194,6 @@ const ExhibitionForm = () => {
     }
   };
 
-  // Handle image file selection
   const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -196,12 +215,10 @@ const ExhibitionForm = () => {
   const removeGalleryImage = (index: number) => {
     setGalleryImagePreviews(prev => prev.filter((_, i) => i !== index));
     
-    // If it's a new file, remove from files array
     if (index >= (form.getValues().galleryImages?.length || 0)) {
       const newFileIndex = index - (form.getValues().galleryImages?.length || 0);
       setGalleryImageFiles(prev => prev.filter((_, i) => i !== newFileIndex));
     } else {
-      // If it's an existing image, remove from form values
       const currentGalleryImages = form.getValues().galleryImages || [];
       form.setValue('galleryImages', currentGalleryImages.filter((_, i) => i !== index));
     }

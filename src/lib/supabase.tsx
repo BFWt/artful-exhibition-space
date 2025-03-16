@@ -1,4 +1,3 @@
-
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
@@ -106,6 +105,8 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const addExhibition = async (exhibition: Omit<Exhibition, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
+      console.log('Adding exhibition:', exhibition);
+      
       // Insert the exhibition
       const { data, error } = await supabase
         .from('exhibitions')
@@ -121,7 +122,12 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error inserting exhibition:', error);
+        throw error;
+      }
+      
+      console.log('Exhibition inserted:', data);
       
       // Insert contributors if any
       if (exhibition.contributors && exhibition.contributors.length > 0) {
@@ -130,11 +136,16 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           exhibitionId: data.id
         }));
         
+        console.log('Adding contributors:', contributorsWithExhibitionId);
+        
         const { error: contributorsError } = await supabase
           .from('contributors')
           .insert(contributorsWithExhibitionId);
           
-        if (contributorsError) throw contributorsError;
+        if (contributorsError) {
+          console.error('Error inserting contributors:', contributorsError);
+          throw contributorsError;
+        }
       }
       
       // Insert program entries if any
@@ -144,11 +155,16 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           exhibitionId: data.id
         }));
         
+        console.log('Adding program entries:', programWithExhibitionId);
+        
         const { error: programError } = await supabase
           .from('program')
           .insert(programWithExhibitionId);
           
-        if (programError) throw programError;
+        if (programError) {
+          console.error('Error inserting program entries:', programError);
+          throw programError;
+        }
       }
       
       // Refetch to get the updated list

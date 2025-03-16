@@ -1,43 +1,46 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Layout from "./components/Layout";
-import Index from "./pages/Index";
-import Archive from "./pages/Archive";
-import ExhibitionDetail from "./pages/ExhibitionDetail";
-import Contact from "./pages/Contact";
-import Impressum from "./pages/Impressum";
-import Datenschutz from "./pages/Datenschutz";
-import Admin from "./pages/Admin";
-import NotFound from "./pages/NotFound";
-import { SupabaseProvider } from "./lib/supabase";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { TooltipProvider } from '@radix-ui/react-tooltip';
+import Layout from './components/Layout';
+import Index from './pages/Index';
+import Archive from './pages/Archive';
+import Contact from './pages/Contact';
+import ExhibitionDetail from './pages/ExhibitionDetail';
+import NotFound from './pages/NotFound';
+import Admin from './pages/Admin';
+import Impressum from './pages/Impressum';
+import Datenschutz from './pages/Datenschutz';
+import { SupabaseProvider } from './lib/supabase';
+import './App.css';
 
+// Create a client
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <SupabaseProvider>
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Layout><Index /></Layout>} />
-            <Route path="/archiv" element={<Layout><Archive /></Layout>} />
-            <Route path="/ausstellung/:id" element={<Layout><ExhibitionDetail /></Layout>} />
-            <Route path="/kontakt" element={<Layout><Contact /></Layout>} />
-            <Route path="/impressum" element={<Layout><Impressum /></Layout>} />
-            <Route path="/datenschutz" element={<Layout><Datenschutz /></Layout>} />
-            <Route path="/admin/*" element={<Admin />} />
-            <Route path="*" element={<Layout><NotFound /></Layout>} />
-          </Routes>
-        </BrowserRouter>
+        <SupabaseProvider>
+          <Router>
+            <Routes>
+              <Route path="/admin/*" element={<Admin />} />
+              <Route element={<Layout />}>
+                <Route path="/" element={<Index />} />
+                <Route path="/archiv" element={<Archive />} />
+                <Route path="/kontakt" element={<Contact />} />
+                <Route path="/impressum" element={<Impressum />} />
+                <Route path="/datenschutz" element={<Datenschutz />} />
+                <Route path="/ausstellung/:id" element={<ExhibitionDetail />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
+            </Routes>
+          </Router>
+        </SupabaseProvider>
       </TooltipProvider>
-    </SupabaseProvider>
-  </QueryClientProvider>
-);
+    </QueryClientProvider>
+  );
+}
 
 export default App;
