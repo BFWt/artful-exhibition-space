@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Define types for our database
 export type SupportingContributor = {
-  id?: number;  // Changed from required to optional
+  id?: number;
   exhibitionId?: number;
   type: string;
   name: string;
@@ -11,7 +11,7 @@ export type SupportingContributor = {
 };
 
 export type ProgramEntry = {
-  id?: number;  // Changed from required to optional
+  id?: number;
   exhibitionId?: number;
   day: string;
   timeframe: string;
@@ -30,6 +30,9 @@ export type Exhibition = {
   state: 'current' | 'upcoming' | 'past';
   createdAt: string;
   updatedAt: string;
+  date: string;
+  germanDate?: string;
+  timeline?: string;
   contributors?: SupportingContributor[];
   program?: ProgramEntry[];
 };
@@ -63,7 +66,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setError(null);
     
     try {
-      // Fetch exhibitions
       const { data: exhibitionsData, error: exhibitionsError } = await supabase
         .from('exhibitions')
         .select('*')
@@ -71,21 +73,18 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
       if (exhibitionsError) throw exhibitionsError;
       
-      // Fetch all contributors
       const { data: contributorsData, error: contributorsError } = await supabase
         .from('contributors')
         .select('*');
         
       if (contributorsError) throw contributorsError;
       
-      // Fetch all program entries
       const { data: programData, error: programError } = await supabase
         .from('program')
         .select('*');
         
       if (programError) throw programError;
       
-      // Merge data
       const exhibitionsWithRelations = exhibitionsData.map(exhibition => {
         return {
           ...exhibition,
@@ -107,7 +106,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       console.log('Adding exhibition:', exhibition);
       
-      // Insert the exhibition
       const { data, error } = await supabase
         .from('exhibitions')
         .insert([{
@@ -118,6 +116,7 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           coverImage: exhibition.coverImage,
           galleryImages: exhibition.galleryImages,
           state: exhibition.state,
+          date: exhibition.date || new Date().toISOString().split('T')[0]
         }])
         .select()
         .single();
@@ -129,7 +128,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       
       console.log('Exhibition inserted:', data);
       
-      // Insert contributors if any
       if (exhibition.contributors && exhibition.contributors.length > 0) {
         const contributorsWithExhibitionId = exhibition.contributors.map(c => ({
           ...c,
@@ -148,7 +146,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       }
       
-      // Insert program entries if any
       if (exhibition.program && exhibition.program.length > 0) {
         const programWithExhibitionId = exhibition.program.map(p => ({
           ...p,
@@ -167,13 +164,12 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       }
       
-      // Refetch to get the updated list
       await fetchExhibitions();
       
       return data as Exhibition;
     } catch (err) {
       console.error('Error adding exhibition:', err);
-      return null;
+      throw err;
     }
   };
 
@@ -181,7 +177,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       const { contributors, program, ...exhibitionData } = exhibition;
       
-      // Update exhibition
       const { data, error } = await supabase
         .from('exhibitions')
         .update(exhibitionData)
@@ -191,9 +186,7 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
       if (error) throw error;
       
-      // Update contributors if provided
       if (contributors) {
-        // Delete existing contributors
         const { error: deleteError } = await supabase
           .from('contributors')
           .delete()
@@ -201,7 +194,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           
         if (deleteError) throw deleteError;
         
-        // Insert new contributors
         if (contributors.length > 0) {
           const contributorsWithExhibitionId = contributors.map(c => ({
             ...c,
@@ -216,9 +208,7 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       }
       
-      // Update program entries if provided
       if (program) {
-        // Delete existing program entries
         const { error: deleteError } = await supabase
           .from('program')
           .delete()
@@ -226,7 +216,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           
         if (deleteError) throw deleteError;
         
-        // Insert new program entries
         if (program.length > 0) {
           const programWithExhibitionId = program.map(p => ({
             ...p,
@@ -241,19 +230,17 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
       }
       
-      // Refetch to get the updated list
       await fetchExhibitions();
       
       return data as Exhibition;
     } catch (err) {
       console.error('Error updating exhibition:', err);
-      return null;
+      throw err;
     }
   };
 
   const deleteExhibition = async (id: number) => {
     try {
-      // Delete contributors
       const { error: contributorsError } = await supabase
         .from('contributors')
         .delete()
@@ -261,7 +248,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
       if (contributorsError) throw contributorsError;
       
-      // Delete program entries
       const { error: programError } = await supabase
         .from('program')
         .delete()
@@ -269,7 +255,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
       if (programError) throw programError;
       
-      // Delete exhibition
       const { error } = await supabase
         .from('exhibitions')
         .delete()
@@ -277,7 +262,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
       if (error) throw error;
       
-      // Refetch to get the updated list
       await fetchExhibitions();
       
       return true;
@@ -299,7 +283,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         
       if (uploadError) throw uploadError;
       
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('exhibitions')
         .getPublicUrl(filePath);

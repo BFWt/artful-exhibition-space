@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSupabase, Exhibition, SupportingContributor, ProgramEntry } from '@/lib/supabase';
@@ -33,7 +34,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Image, Plus, X, Music, User, Coffee, AlertTriangle, Calendar } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { de } from 'date-fns/locale';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon, Image, Plus, X, Music, User, Coffee, AlertTriangle, Calendar as CalendarIcon2 } from 'lucide-react';
 
 const formSchema = z.object({
   title: z.string().min(1, 'Titel ist erforderlich'),
@@ -43,6 +48,7 @@ const formSchema = z.object({
   state: z.enum(['current', 'upcoming', 'past']),
   coverImage: z.string().min(1, 'Titelbild ist erforderlich'),
   galleryImages: z.array(z.string()).optional(),
+  date: z.string().min(1, 'Datum ist erforderlich'),
   contributors: z.array(z.object({
     id: z.number().optional(),
     type: z.string().min(1, 'Art ist erforderlich'),
@@ -71,6 +77,7 @@ const ExhibitionForm = () => {
   const [galleryImageFiles, setGalleryImageFiles] = useState<File[]>([]);
   const [galleryImagePreviews, setGalleryImagePreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -82,6 +89,7 @@ const ExhibitionForm = () => {
       state: 'upcoming',
       coverImage: '',
       galleryImages: [],
+      date: format(new Date(), 'yyyy-MM-dd'),
       contributors: [],
       program: []
     }
@@ -109,10 +117,12 @@ const ExhibitionForm = () => {
           state: exhibition.state,
           coverImage: exhibition.coverImage,
           galleryImages: exhibition.galleryImages || [],
+          date: exhibition.date || format(new Date(), 'yyyy-MM-dd'),
           contributors: exhibition.contributors || [],
           program: exhibition.program || []
         });
         
+        setSelectedDate(exhibition.date ? new Date(exhibition.date) : new Date());
         setCoverImagePreview(exhibition.coverImage);
         setGalleryImagePreviews(exhibition.galleryImages || []);
       }
@@ -120,18 +130,26 @@ const ExhibitionForm = () => {
   }, [isEditing, exhibitions, id, form]);
 
   const onSubmit = async (values: FormValues) => {
+    console.log("Form values before submission:", values);
+    if (!form.formState.isValid) {
+      console.log("Form is not valid:", form.formState.errors);
+      return;
+    }
+    
     setUploading(true);
     try {
       console.log("Form values before submission:", values);
       
       let coverImageUrl = values.coverImage;
       if (coverImageFile) {
+        console.log("Uploading cover image...");
         const url = await uploadImage(coverImageFile, 'cover');
         if (url) coverImageUrl = url;
       }
       
       let galleryImagesUrls = [...(values.galleryImages || [])];
       if (galleryImageFiles.length > 0) {
+        console.log("Uploading gallery images...");
         for (let i = 0; i < galleryImageFiles.length; i++) {
           const url = await uploadImage(galleryImageFiles[i], 'gallery');
           if (url) galleryImagesUrls.push(url);
@@ -153,6 +171,9 @@ const ExhibitionForm = () => {
         description: item.description || ''
       })) || [];
       
+      // Generate German formatted date
+      const germanDate = format(new Date(values.date), 'dd. MMMM yyyy', { locale: de });
+      
       const exhibitionData = {
         title: values.title,
         subtitle: values.subtitle || '',
@@ -161,6 +182,8 @@ const ExhibitionForm = () => {
         state: values.state,
         coverImage: coverImageUrl,
         galleryImages: galleryImagesUrls,
+        date: values.date,
+        germanDate: germanDate,
         contributors: contributors,
         program: program
       };
@@ -168,20 +191,39 @@ const ExhibitionForm = () => {
       console.log("Exhibition data to save:", exhibitionData);
       
       if (isEditing) {
-        await updateExhibition(Number(id), exhibitionData);
-        toast({
-          title: "Ausstellung aktualisiert",
-          description: "Die Ausstellung wurde erfolgreich aktualisiert.",
-        });
+        try {
+          await updateExhibition(Number(id), exhibitionData);
+          toast({
+            title: "Ausstellung aktualisiert",
+            description: "Die Ausstellung wurde erfolgreich aktualisiert.",
+          });
+          navigate('/admin/exhibitions');
+        } catch (error) {
+          console.error("Error updating exhibition:", error);
+          toast({
+            title: "Fehler",
+            description: "Beim Aktualisieren der Ausstellung ist ein Fehler aufgetreten.",
+            variant: "destructive",
+          });
+        }
       } else {
-        await addExhibition(exhibitionData);
-        toast({
-          title: "Ausstellung erstellt",
-          description: "Die Ausstellung wurde erfolgreich erstellt.",
-        });
+        try {
+          const result = await addExhibition(exhibitionData);
+          console.log("Exhibition created:", result);
+          toast({
+            title: "Ausstellung erstellt",
+            description: "Die Ausstellung wurde erfolgreich erstellt.",
+          });
+          navigate('/admin/exhibitions');
+        } catch (error) {
+          console.error("Error creating exhibition:", error);
+          toast({
+            title: "Fehler",
+            description: "Beim Erstellen der Ausstellung ist ein Fehler aufgetreten.",
+            variant: "destructive",
+          });
+        }
       }
-      
-      navigate('/admin/exhibitions');
     } catch (err) {
       console.error('Error submitting form:', err);
       toast({
@@ -341,6 +383,47 @@ const ExhibitionForm = () => {
                         <FormControl>
                           <Input placeholder="Name des Künstlers" {...field} />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Datum</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className={`w-full pl-3 text-left font-normal ${
+                                  !field.value ? "text-muted-foreground" : ""
+                                }`}
+                              >
+                                {field.value ? (
+                                  format(new Date(field.value), "PPP", { locale: de })
+                                ) : (
+                                  <span>Datum auswählen</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={selectedDate}
+                              onSelect={(date) => {
+                                setSelectedDate(date);
+                                field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
+                              }}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage />
                       </FormItem>
                     )}

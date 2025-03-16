@@ -26,8 +26,8 @@ function App() {
           <Router>
             <Routes>
               <Route path="/admin/*" element={<Admin />} />
-              <Route element={<Layout />}>
-                <Route path="/" element={<Index />} />
+              <Route path="/" element={<Layout />}>
+                <Route index element={<Index />} />
                 <Route path="/archiv" element={<Archive />} />
                 <Route path="/kontakt" element={<Contact />} />
                 <Route path="/impressum" element={<Impressum />} />
