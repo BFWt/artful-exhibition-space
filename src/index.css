@@ -1,92 +1,41 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 30 25% 98%;
+    --foreground: 20 14.3% 4.1%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 20 14.3% 4.1%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 20 14.3% 4.1%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 24 9.8% 10%;
+    --primary-foreground: 60 9.1% 97.8%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 60 4.8% 95.9%;
+    --secondary-foreground: 24 9.8% 10%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 60 4.8% 95.9%;
+    --muted-foreground: 25 5.3% 44.7%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 60 4.8% 95.9%;
+    --accent-foreground: 24 9.8% 10%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 60 9.1% 97.8%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 20 5.9% 90%;
+    --input: 20 5.9% 90%;
+    --ring: 24 5.4% 63.9%;
 
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --radius: 0.3rem;
   }
 }
 
@@ -94,8 +43,103 @@
   * {
     @apply border-border;
   }
-
-  body {
-    @apply bg-background text-foreground;
+  
+  html {
+    @apply antialiased;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02";
+    text-rendering: optimizeLegibility;
   }
+  
+  body {
+    @apply bg-background text-foreground font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  /* Glass panel styling */
+  .glass-panel {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-sm;
+  }
+  
+  /* Exhibition item animations */
+  .exhibition-card {
+    @apply transform transition-all duration-500 ease-out hover:scale-[1.02];
+  }
+  
+  /* Timeline styling */
+  .timeline-item {
+    @apply relative pl-8 pb-8 border-l border-stone-200 last:border-l-0 last:pb-0;
+  }
+  
+  .timeline-item::before {
+    content: '';
+    @apply absolute w-3 h-3 rounded-full bg-stone-400 -left-[6.5px] top-1;
+  }
+  
+  .timeline-item.key-moment::before {
+    @apply bg-stone-700;
+  }
+  
+  /* Exhibition gallery image container */
+  .masonry-grid {
+    @apply columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4;
+  }
+  
+  /* Text overflow handling */
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Page transitions */
+  .page-transition-enter {
+    @apply opacity-0;
+  }
+  
+  .page-transition-enter-active {
+    @apply opacity-100 transition-opacity duration-300;
+  }
+  
+  .page-transition-exit {
+    @apply opacity-100;
+  }
+  
+  .page-transition-exit-active {
+    @apply opacity-0 transition-opacity duration-300;
+  }
+
+  /* Fancy link hover effect */
+  .hover-link {
+    @apply relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-full after:origin-bottom-right after:scale-x-0 after:bg-current after:transition-transform after:duration-300 hover:after:origin-bottom-left hover:after:scale-x-100;
+  }
+
+  /* Tag/chip styling */
+  .tag {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-800;
+  }
+  
+  /* Elegant button style */
+  .btn-elegant {
+    @apply px-4 py-2 transition-colors bg-stone-800 text-white hover:bg-stone-700 focus:outline-none focus:ring-2 focus:ring-stone-500 focus:ring-offset-2;
+  }
+}
+
+/* Ensures images load with a nice transition effect */
+img.lazy-load {
+  @apply opacity-0 transition-opacity duration-500;
+}
+
+img.lazy-loaded {
+  @apply opacity-100;
+}
+
+/* Header abstract art animation */
+.header-art {
+  background: linear-gradient(100deg, rgba(245,245,244,0.3) 0%, rgba(231,229,228,0.1) 25%, rgba(214,211,209,0.2) 50%, rgba(231,229,228,0.1) 75%, rgba(245,245,244,0.3) 100%);
+  background-size: 200% 100%;
+  animation: background-shimmer 7s infinite linear;
 }
