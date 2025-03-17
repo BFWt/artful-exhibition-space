@@ -14,10 +14,13 @@ export type SupportingContributor = {
 export type ProgramEntry = {
   id?: number;
   exhibitionId?: number;
-  day: string;
-  timeframe: string;
+  day: string; // Will keep as string for compatibility but add new date fields
+  timeframe: string; // Will keep as string for compatibility but add new date fields
   title: string;
   description: string;
+  date?: string; // New proper date field
+  startTime?: string; // New time field
+  endTime?: string; // New time field
 };
 
 export type Exhibition = {
@@ -31,8 +34,10 @@ export type Exhibition = {
   state: 'current' | 'upcoming' | 'past';
   createdAt: string;
   updatedAt: string;
-  date: string;
+  date: string; // Start date
+  endDate?: string; // End date - new field
   germanDate?: string;
+  germanEndDate?: string; // German formatted end date
   timeline?: string;
   contributors?: SupportingContributor[];
   program?: ProgramEntry[];
@@ -117,7 +122,10 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           coverImage: exhibition.coverImage || null,
           galleryImages: exhibition.galleryImages || [],
           state: exhibition.state,
-          date: exhibition.date || new Date().toISOString().split('T')[0]
+          date: exhibition.date,
+          endDate: exhibition.endDate || null,
+          germanDate: exhibition.germanDate || null,
+          germanEndDate: exhibition.germanEndDate || null
         }])
         .select()
         .single();

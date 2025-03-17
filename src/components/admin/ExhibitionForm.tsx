@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSupabase, Exhibition, SupportingContributor, ProgramEntry } from '@/lib/supabase';
@@ -48,7 +47,8 @@ const formSchema = z.object({
   state: z.enum(['current', 'upcoming', 'past']),
   coverImage: z.string().optional(), // Made coverImage optional
   galleryImages: z.array(z.string()).optional(),
-  date: z.string().min(1, 'Datum ist erforderlich'),
+  date: z.string().min(1, 'Startdatum ist erforderlich'),
+  endDate: z.string().optional(), // Optional end date
   contributors: z.array(z.object({
     id: z.number().optional(),
     type: z.string().min(1, 'Art ist erforderlich'),
@@ -60,7 +60,10 @@ const formSchema = z.object({
     day: z.string().min(1, 'Tag ist erforderlich'),
     timeframe: z.string().min(1, 'Zeitrahmen ist erforderlich'),
     title: z.string().min(1, 'Titel ist erforderlich'),
-    description: z.string().optional()
+    description: z.string().optional(),
+    date: z.string().optional(), // Proper date field
+    startTime: z.string().optional(), // Start time field
+    endTime: z.string().optional(), // End time field
   })).optional()
 });
 
@@ -77,7 +80,8 @@ const ExhibitionForm = () => {
   const [galleryImageFiles, setGalleryImageFiles] = useState<File[]>([]);
   const [galleryImagePreviews, setGalleryImagePreviews] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [selectedStartDate, setSelectedStartDate] = useState<Date | undefined>(new Date());
+  const [selectedEndDate, setSelectedEndDate] = useState<Date | undefined>(undefined);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -90,6 +94,7 @@ const ExhibitionForm = () => {
       coverImage: '',
       galleryImages: [],
       date: format(new Date(), 'yyyy-MM-dd'),
+      endDate: '',
       contributors: [],
       program: []
     }
@@ -118,11 +123,15 @@ const ExhibitionForm = () => {
           coverImage: exhibition.coverImage || '',
           galleryImages: exhibition.galleryImages || [],
           date: exhibition.date || format(new Date(), 'yyyy-MM-dd'),
+          endDate: exhibition.endDate || '',
           contributors: exhibition.contributors || [],
           program: exhibition.program || []
         });
         
-        setSelectedDate(exhibition.date ? new Date(exhibition.date) : new Date());
+        setSelectedStartDate(exhibition.date ? new Date(exhibition.date) : new Date());
+        if (exhibition.endDate) {
+          setSelectedEndDate(new Date(exhibition.endDate));
+        }
         if (exhibition.coverImage) {
           setCoverImagePreview(exhibition.coverImage);
         }
@@ -179,11 +188,15 @@ const ExhibitionForm = () => {
         day: item.day,
         timeframe: item.timeframe,
         title: item.title,
-        description: item.description || ''
+        description: item.description || '',
+        date: item.date || '',
+        startTime: item.startTime || '',
+        endTime: item.endTime || ''
       })) || [];
       
-      // Generate German formatted date
+      // Generate German formatted dates
       const germanDate = format(new Date(values.date), 'dd. MMMM yyyy', { locale: de });
+      const germanEndDate = values.endDate ? format(new Date(values.endDate), 'dd. MMMM yyyy', { locale: de }) : undefined;
       
       // Prepare exhibition data
       const exhibitionData = {
@@ -195,7 +208,9 @@ const ExhibitionForm = () => {
         coverImage: coverImageUrl,
         galleryImages: galleryImagesUrls,
         date: values.date,
+        endDate: values.endDate || null,
         germanDate: germanDate,
+        germanEndDate: germanEndDate,
         contributors: contributors,
         program: program
       };
@@ -421,47 +436,96 @@ const ExhibitionForm = () => {
                       </FormItem>
                     )}
                   />
-                  
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Datum</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                className={`w-full pl-3 text-left font-normal ${
-                                  !field.value ? "text-muted-foreground" : ""
-                                }`}
-                              >
-                                {field.value ? (
-                                  format(new Date(field.value), "PPP", { locale: de })
-                                ) : (
-                                  <span>Datum auswählen</span>
-                                )}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={selectedDate}
-                              onSelect={(date) => {
-                                setSelectedDate(date);
-                                field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
-                              }}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+
+                  {/* Date Range selection */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Startdatum</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={`w-full pl-3 text-left font-normal ${
+                                    !field.value ? "text-muted-foreground" : ""
+                                  }`}
+                                >
+                                  {field.value ? (
+                                    format(new Date(field.value), "PPP", { locale: de })
+                                  ) : (
+                                    <span>Startdatum auswählen</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={selectedStartDate}
+                                onSelect={(date) => {
+                                  setSelectedStartDate(date);
+                                  field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
+                                }}
+                                initialFocus
+                                className="p-3 pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="endDate"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Enddatum (optional)</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  className={`w-full pl-3 text-left font-normal ${
+                                    !field.value ? "text-muted-foreground" : ""
+                                  }`}
+                                >
+                                  {field.value ? (
+                                    format(new Date(field.value), "PPP", { locale: de })
+                                  ) : (
+                                    <span>Enddatum auswählen</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={selectedEndDate}
+                                onSelect={(date) => {
+                                  setSelectedEndDate(date);
+                                  field.onChange(date ? format(date, 'yyyy-MM-dd') : '');
+                                }}
+                                initialFocus
+                                className="p-3 pointer-events-auto"
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormDescription>
+                            Optional: Falls die Ausstellung mehrere Tage dauert
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   
                   <FormField
                     control={form.control}
@@ -693,16 +757,79 @@ const ExhibitionForm = () => {
                     {programFields.map((field, index) => (
                       <div key={field.id} className="flex items-start space-x-4">
                         <div className="grid grid-cols-1 gap-4 flex-1">
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {/* Date field for program entries */}
+                            <FormField
+                              control={form.control}
+                              name={`program.${index}.date`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Datum</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type="date" 
+                                      placeholder="Datum" 
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            {/* Start time */}
+                            <FormField
+                              control={form.control}
+                              name={`program.${index}.startTime`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Startzeit</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type="time" 
+                                      placeholder="Startzeit" 
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            {/* End time */}
+                            <FormField
+                              control={form.control}
+                              name={`program.${index}.endTime`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Endzeit</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      type="time" 
+                                      placeholder="Endzeit" 
+                                      {...field} 
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          
+                          {/* Keep legacy fields too for compatibility */}
                           <div className="grid grid-cols-2 gap-4">
                             <FormField
                               control={form.control}
                               name={`program.${index}.day`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Tag</FormLabel>
+                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Tag (Legacy)</FormLabel>
                                   <FormControl>
                                     <Input placeholder="z.B. Freitag, 12.05.2023" {...field} />
                                   </FormControl>
+                                  <FormDescription>
+                                    Für Kompatibilität (bevorzugt das neue Datum verwenden)
+                                  </FormDescription>
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -713,10 +840,13 @@ const ExhibitionForm = () => {
                               name={`program.${index}.timeframe`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Zeitrahmen</FormLabel>
+                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Zeitrahmen (Legacy)</FormLabel>
                                   <FormControl>
                                     <Input placeholder="z.B. 18:00 - 20:00 Uhr" {...field} />
                                   </FormControl>
+                                  <FormDescription>
+                                    Für Kompatibilität (bevorzugt die neuen Zeitfelder verwenden)
+                                  </FormDescription>
                                   <FormMessage />
                                 </FormItem>
                               )}
@@ -770,7 +900,7 @@ const ExhibitionForm = () => {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => appendProgram({ day: '', timeframe: '', title: '', description: '' })}
+                      onClick={() => appendProgram({ day: '', timeframe: '', title: '', description: '', date: '', startTime: '', endTime: '' })}
                       className="mt-2"
                     >
                       <Plus className="mr-2 h-4 w-4" />

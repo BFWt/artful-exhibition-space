@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import Layout from './components/Layout';
@@ -27,7 +27,7 @@ function App() {
           <Router>
             <Routes>
               <Route path="/admin/*" element={<Admin />} />
-              <Route path="/" element={<Layout />}>
+              <Route path="/" element={<Layout><Outlet /></Layout>}>
                 <Route index element={<Index />} />
                 <Route path="/archiv" element={<Archive />} />
                 <Route path="/kontakt" element={<Contact />} />

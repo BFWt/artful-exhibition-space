@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import CurrentExhibition from '../components/CurrentExhibition';
 import ExhibitionCard from '../components/ExhibitionCard';
-import { useSupabase } from '@/lib/supabase';
+import { useSupabase, Exhibition } from '@/lib/supabase';
 
 const Index = () => {
   const { exhibitions, isLoading } = useSupabase();
