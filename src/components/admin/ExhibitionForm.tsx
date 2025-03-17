@@ -50,8 +50,6 @@ const formSchema = z.object({
   date: z.string().min(1, 'Startdatum ist erforderlich'),
   endDate: z.string().optional(), // Optional end date
   contributors: z.array(z.object({
-    id: z.number().optional(),
-    type: z.string().min(1, 'Art ist erforderlich'),
     name: z.string().min(1, 'Name ist erforderlich'),
     icon: z.string().min(1, 'Icon ist erforderlich')
   })).optional(),
@@ -114,6 +112,12 @@ const ExhibitionForm = () => {
     if (isEditing && exhibitions) {
       const exhibition = exhibitions.find(e => e.id === Number(id));
       if (exhibition) {
+        // Map contributors to only include name and icon
+        const mappedContributors = exhibition.contributors ? exhibition.contributors.map(c => ({
+          name: c.name,
+          icon: c.icon
+        })) : [];
+
         form.reset({
           title: exhibition.title,
           subtitle: exhibition.subtitle || '',
@@ -124,7 +128,7 @@ const ExhibitionForm = () => {
           galleryImages: exhibition.galleryImages || [],
           date: exhibition.date || format(new Date(), 'yyyy-MM-dd'),
           endDate: exhibition.endDate || '',
-          contributors: exhibition.contributors || [],
+          contributors: mappedContributors,
           program: exhibition.program || []
         });
         
@@ -150,6 +154,10 @@ const ExhibitionForm = () => {
         const url = await uploadImage(coverImageFile, 'cover');
         if (url) {
           coverImageUrl = url;
+          toast({
+            title: "Erfolg",
+            description: "Titelbild wurde erfolgreich hochgeladen.",
+          });
         } else {
           toast({
             title: "Fehler",
@@ -170,6 +178,7 @@ const ExhibitionForm = () => {
             toast({
               title: "Warnung",
               description: `Ein Galeriebild konnte nicht hochgeladen werden.`,
+              variant: "destructive",
             });
           }
         }
@@ -177,8 +186,7 @@ const ExhibitionForm = () => {
       
       // Prepare contributors and program data
       const contributors = values.contributors?.map(contributor => ({
-        id: contributor.id,
-        type: contributor.type,
+        type: 'Mitwirkende', // Default type
         name: contributor.name,
         icon: contributor.icon
       })) || [];
@@ -225,6 +233,7 @@ const ExhibitionForm = () => {
           });
           navigate('/admin/exhibitions');
         } catch (error) {
+          console.error('Error updating exhibition:', error);
           toast({
             title: "Fehler",
             description: "Beim Aktualisieren der Ausstellung ist ein Fehler aufgetreten.",
@@ -248,6 +257,7 @@ const ExhibitionForm = () => {
             });
           }
         } catch (error) {
+          console.error('Error adding exhibition:', error);
           if (error instanceof Error) {
             toast({
               title: "Fehler",
@@ -264,6 +274,7 @@ const ExhibitionForm = () => {
         }
       }
     } catch (err) {
+      console.error('General error during save:', err);
       if (err instanceof Error) {
         toast({
           title: "Fehler",
@@ -647,21 +658,7 @@ const ExhibitionForm = () => {
                   <div className="space-y-4">
                     {contributorFields.map((field, index) => (
                       <div key={field.id} className="flex items-start space-x-4">
-                        <div className="grid grid-cols-3 gap-4 flex-1">
-                          <FormField
-                            control={form.control}
-                            name={`contributors.${index}.type`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className={index !== 0 ? 'sr-only' : ''}>Art</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="z.B. Musik, Food" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
+                        <div className="grid grid-cols-2 gap-4 flex-1">
                           <FormField
                             control={form.control}
                             name={`contributors.${index}.name`}
@@ -733,7 +730,7 @@ const ExhibitionForm = () => {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => appendContributor({ type: '', name: '', icon: 'user' })}
+                      onClick={() => appendContributor({ name: '', icon: 'user' })}
                       className="mt-2"
                     >
                       <Plus className="mr-2 h-4 w-4" />

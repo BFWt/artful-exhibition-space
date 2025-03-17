@@ -1,6 +1,7 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 // Define types for our database
 export type SupportingContributor = {
@@ -29,7 +30,7 @@ export type Exhibition = {
   subtitle: string;
   description: string;
   artist: string;
-  coverImage?: string;
+  coverImage?: string; // Made coverImage optional
   galleryImages: string[];
   state: 'current' | 'upcoming' | 'past';
   createdAt: string;
@@ -66,6 +67,7 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [exhibitions, setExhibitions] = useState<Exhibition[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const { toast } = useToast();
 
   const fetchExhibitions = async () => {
     setIsLoading(true);
@@ -103,6 +105,11 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch (err) {
       setError(err as Error);
       console.error('Error fetching exhibitions:', err);
+      toast({
+        title: "Fehler",
+        description: "Beim Laden der Ausstellungen ist ein Fehler aufgetreten.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -132,6 +139,11 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       
       if (error) {
         console.error('Error inserting exhibition:', error);
+        toast({
+          title: "Fehler",
+          description: `Beim Erstellen der Ausstellung ist ein Fehler aufgetreten: ${error.message}`,
+          variant: "destructive",
+        });
         throw error;
       }
       
@@ -139,8 +151,10 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       
       if (exhibition.contributors && exhibition.contributors.length > 0) {
         const contributorsWithExhibitionId = exhibition.contributors.map(c => ({
-          ...c,
-          exhibitionId: data.id
+          exhibitionId: data.id,
+          type: c.type,
+          name: c.name,
+          icon: c.icon
         }));
         
         console.log('Adding contributors:', contributorsWithExhibitionId);
@@ -151,14 +165,24 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           
         if (contributorsError) {
           console.error('Error inserting contributors:', contributorsError);
-          throw contributorsError;
+          toast({
+            title: "Warnung",
+            description: `Mitwirkende konnten nicht hinzugefügt werden: ${contributorsError.message}`,
+            variant: "destructive",
+          });
         }
       }
       
       if (exhibition.program && exhibition.program.length > 0) {
         const programWithExhibitionId = exhibition.program.map(p => ({
-          ...p,
-          exhibitionId: data.id
+          exhibitionId: data.id,
+          day: p.day,
+          timeframe: p.timeframe,
+          title: p.title,
+          description: p.description || '',
+          date: p.date || '',
+          startTime: p.startTime || '',
+          endTime: p.endTime || ''
         }));
         
         console.log('Adding program entries:', programWithExhibitionId);
@@ -169,7 +193,11 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           
         if (programError) {
           console.error('Error inserting program entries:', programError);
-          throw programError;
+          toast({
+            title: "Warnung",
+            description: `Programmpunkte konnten nicht hinzugefügt werden: ${programError.message}`,
+            variant: "destructive",
+          });
         }
       }
       
@@ -193,49 +221,96 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         .select()
         .single();
         
-      if (error) throw error;
+      if (error) {
+        toast({
+          title: "Fehler",
+          description: `Beim Aktualisieren der Ausstellung ist ein Fehler aufgetreten: ${error.message}`,
+          variant: "destructive",
+        });
+        throw error;
+      }
       
       if (contributors) {
+        // First delete all existing contributors
         const { error: deleteError } = await supabase
           .from('contributors')
           .delete()
           .eq('exhibitionId', id);
           
-        if (deleteError) throw deleteError;
+        if (deleteError) {
+          toast({
+            title: "Warnung",
+            description: `Bestehende Mitwirkende konnten nicht gelöscht werden: ${deleteError.message}`,
+            variant: "destructive",
+          });
+          throw deleteError;
+        }
         
+        // Then add new contributors if there are any
         if (contributors.length > 0) {
           const contributorsWithExhibitionId = contributors.map(c => ({
-            ...c,
-            exhibitionId: id
+            exhibitionId: id,
+            type: c.type,
+            name: c.name,
+            icon: c.icon
           }));
           
           const { error: contributorsError } = await supabase
             .from('contributors')
             .insert(contributorsWithExhibitionId);
             
-          if (contributorsError) throw contributorsError;
+          if (contributorsError) {
+            toast({
+              title: "Warnung",
+              description: `Mitwirkende konnten nicht aktualisiert werden: ${contributorsError.message}`,
+              variant: "destructive",
+            });
+            throw contributorsError;
+          }
         }
       }
       
       if (program) {
+        // First delete all existing program entries
         const { error: deleteError } = await supabase
           .from('program')
           .delete()
           .eq('exhibitionId', id);
           
-        if (deleteError) throw deleteError;
+        if (deleteError) {
+          toast({
+            title: "Warnung",
+            description: `Bestehende Programmpunkte konnten nicht gelöscht werden: ${deleteError.message}`,
+            variant: "destructive",
+          });
+          throw deleteError;
+        }
         
+        // Then add new program entries if there are any
         if (program.length > 0) {
           const programWithExhibitionId = program.map(p => ({
-            ...p,
-            exhibitionId: id
+            exhibitionId: id,
+            day: p.day,
+            timeframe: p.timeframe,
+            title: p.title,
+            description: p.description || '',
+            date: p.date || '',
+            startTime: p.startTime || '',
+            endTime: p.endTime || ''
           }));
           
           const { error: programError } = await supabase
             .from('program')
             .insert(programWithExhibitionId);
             
-          if (programError) throw programError;
+          if (programError) {
+            toast({
+              title: "Warnung",
+              description: `Programmpunkte konnten nicht aktualisiert werden: ${programError.message}`,
+              variant: "destructive",
+            });
+            throw programError;
+          }
         }
       }
       
@@ -250,26 +325,50 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const deleteExhibition = async (id: number) => {
     try {
+      // Delete all contributors
       const { error: contributorsError } = await supabase
         .from('contributors')
         .delete()
         .eq('exhibitionId', id);
         
-      if (contributorsError) throw contributorsError;
+      if (contributorsError) {
+        toast({
+          title: "Warnung",
+          description: `Mitwirkende konnten nicht gelöscht werden: ${contributorsError.message}`,
+          variant: "destructive",
+        });
+        throw contributorsError;
+      }
       
+      // Delete all program entries
       const { error: programError } = await supabase
         .from('program')
         .delete()
         .eq('exhibitionId', id);
         
-      if (programError) throw programError;
+      if (programError) {
+        toast({
+          title: "Warnung",
+          description: `Programmpunkte konnten nicht gelöscht werden: ${programError.message}`,
+          variant: "destructive",
+        });
+        throw programError;
+      }
       
+      // Delete the exhibition
       const { error } = await supabase
         .from('exhibitions')
         .delete()
         .eq('id', id);
         
-      if (error) throw error;
+      if (error) {
+        toast({
+          title: "Fehler",
+          description: `Ausstellung konnte nicht gelöscht werden: ${error.message}`,
+          variant: "destructive",
+        });
+        throw error;
+      }
       
       await fetchExhibitions();
       
@@ -286,19 +385,49 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `${path}/${fileName}`;
       
+      // Log for debugging
+      console.log('Uploading file:', {
+        fileName,
+        filePath,
+        fileSize: file.size,
+        fileType: file.type
+      });
+      
       const { error: uploadError, data } = await supabase.storage
         .from('exhibitions')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
         
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        toast({
+          title: "Fehler beim Bildupload",
+          description: `${uploadError.message}`,
+          variant: "destructive",
+        });
+        throw uploadError;
+      }
+      
+      console.log('Upload successful:', data);
       
       const { data: { publicUrl } } = supabase.storage
         .from('exhibitions')
         .getPublicUrl(filePath);
         
+      console.log('Public URL:', publicUrl);
+      
       return publicUrl;
     } catch (err) {
       console.error('Error uploading image:', err);
+      if (err instanceof Error) {
+        toast({
+          title: "Fehler beim Bildupload",
+          description: err.message,
+          variant: "destructive",
+        });
+      }
       return null;
     }
   };
