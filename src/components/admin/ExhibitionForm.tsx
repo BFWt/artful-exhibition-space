@@ -46,7 +46,7 @@ const formSchema = z.object({
   description: z.string().min(1, 'Beschreibung ist erforderlich'),
   artist: z.string().min(1, 'Künstler ist erforderlich'),
   state: z.enum(['current', 'upcoming', 'past']),
-  coverImage: z.string().min(1, 'Titelbild ist erforderlich'),
+  coverImage: z.string().optional(), // Made coverImage optional
   galleryImages: z.array(z.string()).optional(),
   date: z.string().min(1, 'Datum ist erforderlich'),
   contributors: z.array(z.object({
@@ -115,7 +115,7 @@ const ExhibitionForm = () => {
           description: exhibition.description,
           artist: exhibition.artist,
           state: exhibition.state,
-          coverImage: exhibition.coverImage,
+          coverImage: exhibition.coverImage || '',
           galleryImages: exhibition.galleryImages || [],
           date: exhibition.date || format(new Date(), 'yyyy-MM-dd'),
           contributors: exhibition.contributors || [],
@@ -123,39 +123,50 @@ const ExhibitionForm = () => {
         });
         
         setSelectedDate(exhibition.date ? new Date(exhibition.date) : new Date());
-        setCoverImagePreview(exhibition.coverImage);
+        if (exhibition.coverImage) {
+          setCoverImagePreview(exhibition.coverImage);
+        }
         setGalleryImagePreviews(exhibition.galleryImages || []);
       }
     }
   }, [isEditing, exhibitions, id, form]);
 
   const onSubmit = async (values: FormValues) => {
-    console.log("Form values before submission:", values);
-    if (!form.formState.isValid) {
-      console.log("Form is not valid:", form.formState.errors);
-      return;
-    }
-    
     setUploading(true);
+    
     try {
-      console.log("Form values before submission:", values);
-      
-      let coverImageUrl = values.coverImage;
+      // Upload cover image if available
+      let coverImageUrl = values.coverImage || '';
       if (coverImageFile) {
-        console.log("Uploading cover image...");
         const url = await uploadImage(coverImageFile, 'cover');
-        if (url) coverImageUrl = url;
-      }
-      
-      let galleryImagesUrls = [...(values.galleryImages || [])];
-      if (galleryImageFiles.length > 0) {
-        console.log("Uploading gallery images...");
-        for (let i = 0; i < galleryImageFiles.length; i++) {
-          const url = await uploadImage(galleryImageFiles[i], 'gallery');
-          if (url) galleryImagesUrls.push(url);
+        if (url) {
+          coverImageUrl = url;
+        } else {
+          toast({
+            title: "Fehler",
+            description: "Das Titelbild konnte nicht hochgeladen werden.",
+            variant: "destructive",
+          });
         }
       }
       
+      // Upload gallery images if available
+      let galleryImagesUrls = [...(values.galleryImages || [])];
+      if (galleryImageFiles.length > 0) {
+        for (let i = 0; i < galleryImageFiles.length; i++) {
+          const url = await uploadImage(galleryImageFiles[i], 'gallery');
+          if (url) {
+            galleryImagesUrls.push(url);
+          } else {
+            toast({
+              title: "Warnung",
+              description: `Ein Galeriebild konnte nicht hochgeladen werden.`,
+            });
+          }
+        }
+      }
+      
+      // Prepare contributors and program data
       const contributors = values.contributors?.map(contributor => ({
         id: contributor.id,
         type: contributor.type,
@@ -174,6 +185,7 @@ const ExhibitionForm = () => {
       // Generate German formatted date
       const germanDate = format(new Date(values.date), 'dd. MMMM yyyy', { locale: de });
       
+      // Prepare exhibition data
       const exhibitionData = {
         title: values.title,
         subtitle: values.subtitle || '',
@@ -188,8 +200,7 @@ const ExhibitionForm = () => {
         program: program
       };
       
-      console.log("Exhibition data to save:", exhibitionData);
-      
+      // Save exhibition data
       if (isEditing) {
         try {
           await updateExhibition(Number(id), exhibitionData);
@@ -199,7 +210,6 @@ const ExhibitionForm = () => {
           });
           navigate('/admin/exhibitions');
         } catch (error) {
-          console.error("Error updating exhibition:", error);
           toast({
             title: "Fehler",
             description: "Beim Aktualisieren der Ausstellung ist ein Fehler aufgetreten.",
@@ -209,28 +219,49 @@ const ExhibitionForm = () => {
       } else {
         try {
           const result = await addExhibition(exhibitionData);
-          console.log("Exhibition created:", result);
-          toast({
-            title: "Ausstellung erstellt",
-            description: "Die Ausstellung wurde erfolgreich erstellt.",
-          });
-          navigate('/admin/exhibitions');
+          if (result) {
+            toast({
+              title: "Ausstellung erstellt",
+              description: "Die Ausstellung wurde erfolgreich erstellt.",
+            });
+            navigate('/admin/exhibitions');
+          } else {
+            toast({
+              title: "Fehler",
+              description: "Beim Erstellen der Ausstellung ist ein Fehler aufgetreten.",
+              variant: "destructive",
+            });
+          }
         } catch (error) {
-          console.error("Error creating exhibition:", error);
-          toast({
-            title: "Fehler",
-            description: "Beim Erstellen der Ausstellung ist ein Fehler aufgetreten.",
-            variant: "destructive",
-          });
+          if (error instanceof Error) {
+            toast({
+              title: "Fehler",
+              description: `Beim Erstellen der Ausstellung ist ein Fehler aufgetreten: ${error.message}`,
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Fehler",
+              description: "Beim Erstellen der Ausstellung ist ein unbekannter Fehler aufgetreten.",
+              variant: "destructive",
+            });
+          }
         }
       }
     } catch (err) {
-      console.error('Error submitting form:', err);
-      toast({
-        title: "Fehler",
-        description: "Beim Speichern der Ausstellung ist ein Fehler aufgetreten.",
-        variant: "destructive",
-      });
+      if (err instanceof Error) {
+        toast({
+          title: "Fehler",
+          description: `Beim Speichern der Ausstellung ist ein Fehler aufgetreten: ${err.message}`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Fehler",
+          description: "Beim Speichern der Ausstellung ist ein unbekannter Fehler aufgetreten.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setUploading(false);
     }
@@ -241,6 +272,9 @@ const ExhibitionForm = () => {
       const file = e.target.files[0];
       setCoverImageFile(file);
       setCoverImagePreview(URL.createObjectURL(file));
+      
+      // Update the form value to ensure validation passes
+      form.setValue('coverImage', 'pending-upload', { shouldValidate: true });
     }
   };
 
@@ -466,12 +500,12 @@ const ExhibitionForm = () => {
                 <CardHeader>
                   <CardTitle>Bilder</CardTitle>
                   <CardDescription>
-                    Upload des Titelbilds und der Galerie-Bilder.
+                    Upload des Titelbilds und der Galerie-Bilder. Das Titelbild ist optional.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
-                    <FormLabel className="block mb-2">Titelbild</FormLabel>
+                    <FormLabel className="block mb-2">Titelbild (optional)</FormLabel>
                     <div className="space-y-4">
                       {coverImagePreview && (
                         <div className="relative w-full h-64 rounded-md overflow-hidden border border-stone-200">

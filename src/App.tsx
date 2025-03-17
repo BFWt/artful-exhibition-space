@@ -13,6 +13,7 @@ import Admin from './pages/Admin';
 import Impressum from './pages/Impressum';
 import Datenschutz from './pages/Datenschutz';
 import { SupabaseProvider } from './lib/supabase';
+import { Toaster } from '@/components/ui/toaster';
 import './App.css';
 
 // Create a client
@@ -37,6 +38,7 @@ function App() {
               </Route>
             </Routes>
           </Router>
+          <Toaster />
         </SupabaseProvider>
       </TooltipProvider>
     </QueryClientProvider>

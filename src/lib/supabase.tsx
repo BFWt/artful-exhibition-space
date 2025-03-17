@@ -1,3 +1,4 @@
+
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
@@ -25,7 +26,7 @@ export type Exhibition = {
   subtitle: string;
   description: string;
   artist: string;
-  coverImage: string;
+  coverImage?: string;
   galleryImages: string[];
   state: 'current' | 'upcoming' | 'past';
   createdAt: string;
@@ -113,8 +114,8 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           subtitle: exhibition.subtitle,
           description: exhibition.description,
           artist: exhibition.artist,
-          coverImage: exhibition.coverImage,
-          galleryImages: exhibition.galleryImages,
+          coverImage: exhibition.coverImage || null,
+          galleryImages: exhibition.galleryImages || [],
           state: exhibition.state,
           date: exhibition.date || new Date().toISOString().split('T')[0]
         }])
