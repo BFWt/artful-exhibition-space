@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSupabase, Exhibition, SupportingContributor, ProgramEntry } from '@/lib/supabase';
@@ -46,10 +45,10 @@ const formSchema = z.object({
   description: z.string().min(1, 'Beschreibung ist erforderlich'),
   artist: z.string().min(1, 'Künstler ist erforderlich'),
   state: z.enum(['current', 'upcoming', 'past']),
-  coverImage: z.string().optional(), // Made coverImage optional
+  coverImage: z.string().optional(),
   galleryImages: z.array(z.string()).optional(),
   date: z.string().min(1, 'Startdatum ist erforderlich'),
-  endDate: z.string().optional(), // Optional end date
+  endDate: z.string().optional(),
   contributors: z.array(z.object({
     name: z.string().min(1, 'Name ist erforderlich'),
     icon: z.string().min(1, 'Icon ist erforderlich')
@@ -58,9 +57,9 @@ const formSchema = z.object({
     id: z.number().optional(),
     title: z.string().min(1, 'Titel ist erforderlich'),
     description: z.string().optional(),
-    date: z.string().optional(), // Proper date field
-    startTime: z.string().optional(), // Start time field
-    endTime: z.string().optional(), // End time field
+    date: z.string().optional(),
+    startTime: z.string().optional(),
+    endTime: z.string().optional(),
   })).optional()
 });
 
@@ -111,7 +110,6 @@ const ExhibitionForm = () => {
     if (isEditing && exhibitions) {
       const exhibition = exhibitions.find(e => e.id === Number(id));
       if (exhibition) {
-        // Map contributors to only include name and icon
         const mappedContributors = exhibition.contributors ? exhibition.contributors.map(c => ({
           name: c.name,
           icon: c.icon
@@ -147,7 +145,6 @@ const ExhibitionForm = () => {
     setUploading(true);
     
     try {
-      // Upload cover image if available
       let coverImageUrl = values.coverImage || '';
       if (coverImageFile) {
         const url = await uploadImage(coverImageFile, 'cover');
@@ -166,7 +163,6 @@ const ExhibitionForm = () => {
         }
       }
       
-      // Upload gallery images if available
       let galleryImagesUrls = [...(values.galleryImages || [])];
       if (galleryImageFiles.length > 0) {
         for (let i = 0; i < galleryImageFiles.length; i++) {
@@ -183,9 +179,8 @@ const ExhibitionForm = () => {
         }
       }
       
-      // Prepare contributors and program data
       const contributors = values.contributors?.map(contributor => ({
-        type: 'Mitwirkende', // Default type
+        type: 'Mitwirkende',
         name: contributor.name,
         icon: contributor.icon
       })) || [];
@@ -198,11 +193,9 @@ const ExhibitionForm = () => {
         endTime: item.endTime || ''
       })) || [];
       
-      // Generate German formatted dates
       const germanDate = format(new Date(values.date), 'dd. MMMM yyyy', { locale: de });
       const germanEndDate = values.endDate ? format(new Date(values.endDate), 'dd. MMMM yyyy', { locale: de }) : undefined;
       
-      // Prepare exhibition data
       const exhibitionData = {
         title: values.title,
         subtitle: values.subtitle || '',
@@ -219,7 +212,6 @@ const ExhibitionForm = () => {
         program: program
       };
       
-      // Save exhibition data
       if (isEditing) {
         try {
           await updateExhibition(Number(id), exhibitionData);
@@ -295,7 +287,6 @@ const ExhibitionForm = () => {
       setCoverImageFile(file);
       setCoverImagePreview(URL.createObjectURL(file));
       
-      // Update the form value to ensure validation passes
       form.setValue('coverImage', 'pending-upload', { shouldValidate: true });
     }
   };
@@ -444,7 +435,6 @@ const ExhibitionForm = () => {
                     )}
                   />
 
-                  {/* Date Range selection */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
@@ -748,58 +738,88 @@ const ExhibitionForm = () => {
                 <CardContent>
                   <div className="space-y-4">
                     {programFields.map((field, index) => (
-                      <div key={field.id} className="flex items-start space-x-4">
-                        <div className="grid grid-cols-1 gap-4 flex-1">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {/* Date field for program entries */}
+                      <div key={field.id}>
+                        <div className="flex items-start space-x-4">
+                          <div className="grid grid-cols-1 gap-4 flex-1">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <FormField
+                                control={form.control}
+                                name={`program.${index}.date`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className={index !== 0 ? 'sr-only' : ''}>Datum</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="date" 
+                                        placeholder="Datum" 
+                                        {...field} 
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={form.control}
+                                name={`program.${index}.startTime`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className={index !== 0 ? 'sr-only' : ''}>Startzeit</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="time" 
+                                        placeholder="Startzeit" 
+                                        {...field} 
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={form.control}
+                                name={`program.${index}.endTime`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className={index !== 0 ? 'sr-only' : ''}>Endzeit</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        type="time" 
+                                        placeholder="Endzeit" 
+                                        {...field} 
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            
                             <FormField
                               control={form.control}
-                              name={`program.${index}.date`}
+                              name={`program.${index}.title`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Datum</FormLabel>
+                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Titel</FormLabel>
                                   <FormControl>
-                                    <Input 
-                                      type="date" 
-                                      placeholder="Datum" 
-                                      {...field} 
-                                    />
+                                    <Input placeholder="Titel des Programmpunkts" {...field} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
                             
-                            {/* Start time */}
                             <FormField
                               control={form.control}
-                              name={`program.${index}.startTime`}
+                              name={`program.${index}.description`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Startzeit</FormLabel>
+                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Beschreibung</FormLabel>
                                   <FormControl>
-                                    <Input 
-                                      type="time" 
-                                      placeholder="Startzeit" 
-                                      {...field} 
-                                    />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            {/* End time */}
-                            <FormField
-                              control={form.control}
-                              name={`program.${index}.endTime`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Endzeit</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      type="time" 
-                                      placeholder="Endzeit" 
+                                    <Textarea 
+                                      placeholder="Beschreibung des Programmpunkts" 
                                       {...field} 
                                     />
                                   </FormControl>
@@ -809,47 +829,20 @@ const ExhibitionForm = () => {
                             />
                           </div>
                           
-                          <FormField
-                            control={form.control}
-                            name={`program.${index}.title`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className={index !== 0 ? 'sr-only' : ''}>Titel</FormLabel>
-                                <FormControl>
-                                  <Input placeholder="Titel des Programmpunkts" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={form.control}
-                            name={`program.${index}.description`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className={index !== 0 ? 'sr-only' : ''}>Beschreibung</FormLabel>
-                                <FormControl>
-                                  <Textarea 
-                                    placeholder="Beschreibung des Programmpunkts" 
-                                    {...field} 
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => removeProgram(index)}
+                            className="mt-8"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
                         
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={() => removeProgram(index)}
-                          className="mt-8"
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
+                        {index < programFields.length - 1 && (
+                          <div className="my-6 border-t border-stone-200" />
+                        )}
                       </div>
                     ))}
                     

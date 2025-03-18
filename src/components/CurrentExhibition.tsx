@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays, User, Music, Coffee } from 'lucide-react';
@@ -82,7 +81,6 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
         </div>
         
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {/* Exhibition Image */}
           <motion.div 
             className="relative aspect-[4/3] overflow-hidden rounded-lg shadow-md"
             initial={{ opacity: 0, x: -20 }}
@@ -96,7 +94,6 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
               onLoad={() => setImageLoaded(true)}
             />
             
-            {/* Image caption overlay */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
               <div className="flex flex-col text-white">
                 <div className="flex items-center space-x-2 text-white/90 mb-2">
@@ -124,7 +121,6 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
             </div>
           </motion.div>
           
-          {/* Exhibition Details */}
           <motion.div 
             className="flex flex-col"
             initial={{ opacity: 0, x: 20 }}

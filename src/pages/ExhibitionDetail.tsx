@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -52,13 +51,13 @@ const ExhibitionDetail = () => {
     fetchExhibition();
   }, [id, navigate, getExhibitionById]);
   
-  // Convert to local exhibition format
   const adaptExhibitionForUI = (exhibition: any): LocalExhibition => {
     if (!exhibition) return {} as LocalExhibition;
     
     return {
       id: String(exhibition.id),
       title: exhibition.title || '',
+      subtitle: exhibition.subtitle || '',
       date: exhibition.date || '',
       germanDate: exhibition.germanDate || '',
       description: exhibition.description || '',
@@ -126,6 +125,7 @@ const ExhibitionDetail = () => {
   
   const {
     title,
+    subtitle,
     germanDate,
     germanEndDate,
     description,
@@ -135,14 +135,12 @@ const ExhibitionDetail = () => {
     contributors,
     program,
     state,
-    endDate
   } = exhibition;
 
   const djs = contributors?.filter((c: any) => c.type === 'DJ').map((c: any) => c.name) || [];
   const allContributors = contributors || [];
   const localExhibition = adaptExhibitionForUI(exhibition);
   
-  // Format date range nicely
   const formatDateRange = () => {
     if (germanEndDate && germanEndDate !== germanDate) {
       return `${germanDate} - ${germanEndDate}`;
@@ -150,16 +148,13 @@ const ExhibitionDetail = () => {
     return germanDate;
   };
 
-  // Sort program by date and startTime
   const sortedProgram = program && program.length > 0 
     ? [...program].sort((a, b) => {
-        // First sort by date
         if (a.date && b.date) {
           const dateComparison = new Date(a.date).getTime() - new Date(b.date).getTime();
           if (dateComparison !== 0) return dateComparison;
         }
         
-        // Then by startTime
         if (a.startTime && b.startTime) {
           return a.startTime.localeCompare(b.startTime);
         }
@@ -168,7 +163,6 @@ const ExhibitionDetail = () => {
       })
     : [];
 
-  // Group program by date
   const programByDate = sortedProgram.reduce((groups: Record<string, any[]>, event) => {
     const date = event.date || 'Unbekannt';
     if (!groups[date]) {
@@ -181,7 +175,6 @@ const ExhibitionDetail = () => {
   return (
     <div className="py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Back button */}
         <motion.div
           className="mb-6"
           initial={{ opacity: 0, x: -10 }}
@@ -198,7 +191,6 @@ const ExhibitionDetail = () => {
           </Button>
         </motion.div>
         
-        {/* Hero Image */}
         {coverImage && (
           <motion.div 
             className="w-full h-[40vh] sm:h-[50vh] mb-8 relative rounded-lg overflow-hidden"
@@ -215,7 +207,6 @@ const ExhibitionDetail = () => {
           </motion.div>
         )}
         
-        {/* Exhibition Header */}
         <motion.div 
           className="mb-12 text-center"
           initial={{ opacity: 0, y: 20 }}
@@ -251,6 +242,17 @@ const ExhibitionDetail = () => {
               {title}
             </motion.h1>
             
+            {subtitle && (
+              <motion.p
+                className="font-serif text-xl text-stone-700 mb-3"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.25 }}
+              >
+                {subtitle}
+              </motion.p>
+            )}
+            
             <div className="flex flex-wrap items-center justify-center gap-4 text-stone-600">
               <div className="flex items-center space-x-1">
                 <Calendar className="h-4 w-4" />
@@ -280,7 +282,6 @@ const ExhibitionDetail = () => {
           </div>
         </motion.div>
         
-        {/* Contributors */}
         {allContributors.length > 0 && (
           <motion.div 
             className="mb-12"
@@ -307,9 +308,7 @@ const ExhibitionDetail = () => {
           </motion.div>
         )}
         
-        {/* Exhibition Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Timeline */}
           <motion.div 
             className="lg:col-span-1"
             initial={{ opacity: 0, x: -20 }}
@@ -368,7 +367,6 @@ const ExhibitionDetail = () => {
             )}
           </motion.div>
           
-          {/* Gallery */}
           <motion.div 
             className="lg:col-span-2"
             initial={{ opacity: 0, x: 20 }}
@@ -397,3 +395,4 @@ const ExhibitionDetail = () => {
 };
 
 export default ExhibitionDetail;
+

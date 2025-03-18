@@ -1,4 +1,3 @@
-
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -15,8 +14,6 @@ export type SupportingContributor = {
 export type ProgramEntry = {
   id?: number;
   exhibitionId?: number;
-  day: string; // Will keep as string for compatibility but add new date fields
-  timeframe: string; // Will keep as string for compatibility but add new date fields
   title: string;
   description: string;
   date?: string; // New proper date field
@@ -27,17 +24,18 @@ export type ProgramEntry = {
 export interface Exhibition {
   id: number;
   title: string;
-  subtitle?: string;
-  description?: string;
-  date?: string;
-  germanDate?: string;
+  subtitle?: string; // Added subtitle
+  description: string;
+  artist: string;
+  state: 'current' | 'upcoming' | 'past';
+  date: string;
   endDate?: string;
+  germanDate: string;
+  germanEndDate?: string; // Added germanEndDate
   coverImage?: string;
   galleryImages?: string[];
-  artist?: string;
   contributors?: SupportingContributor[];
   program?: ProgramEntry[];
-  state: 'current' | 'upcoming' | 'past';
   createdAt: string;
   updatedAt: string;
 }
@@ -130,7 +128,8 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           state: exhibition.state,
           date: exhibition.date,
           endDate: exhibition.endDate || null,
-          germanDate: exhibition.germanDate || null
+          germanDate: exhibition.germanDate || null,
+          germanEndDate: exhibition.germanEndDate || null
         }])
         .select()
         .single();
@@ -174,8 +173,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (exhibition.program && exhibition.program.length > 0) {
         const programWithExhibitionId = exhibition.program.map(p => ({
           exhibitionId: data.id,
-          day: p.day,
-          timeframe: p.timeframe,
           title: p.title,
           description: p.description || '',
           date: p.date || '',
@@ -288,8 +285,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (program.length > 0) {
           const programWithExhibitionId = program.map(p => ({
             exhibitionId: id,
-            day: p.day,
-            timeframe: p.timeframe,
             title: p.title,
             description: p.description || '',
             date: p.date || '',
