@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import CurrentExhibition from '../components/CurrentExhibition';
 import ExhibitionCard from '../components/ExhibitionCard';
 import { useSupabase } from '@/lib/supabase';
+import { Exhibition as LocalExhibition } from '../data/exhibitions';
 
 const Index = () => {
   const { exhibitions, isLoading } = useSupabase();
@@ -47,6 +48,31 @@ const Index = () => {
   
   // Display exhibition will be current or the newest past
   const displayExhibition = currentExhibition || newestPastExhibition;
+  
+  // Convert Supabase Exhibition to LocalExhibition format for CurrentExhibition component
+  const adaptExhibitionForUI = (exhibition: any): LocalExhibition => {
+    if (!exhibition) return {} as LocalExhibition;
+    
+    return {
+      id: String(exhibition.id), // Convert number to string
+      title: exhibition.title || '',
+      date: exhibition.date || '',
+      germanDate: exhibition.germanDate || '',
+      description: exhibition.description || '',
+      coverImage: exhibition.coverImage || '',
+      detailImages: exhibition.galleryImages || [],
+      artist: exhibition.artist || '',
+      djs: exhibition.contributors?.filter(c => c.type === 'DJ').map(c => c.name) || [],
+      timeline: exhibition.program?.map(p => ({
+        time: p.timeframe || `${p.startTime || ''} - ${p.endTime || ''}`,
+        title: p.title || '',
+        description: p.description || '',
+        isKeyMoment: false
+      })) || [],
+      isCurrent: exhibition.state === 'current',
+      isUpcoming: exhibition.state === 'upcoming'
+    };
+  };
   
   if (isLoading) {
     return (
@@ -97,7 +123,7 @@ const Index = () => {
       {/* Current Exhibition or Newest Past Exhibition */}
       {displayExhibition && (
         <CurrentExhibition 
-          exhibition={displayExhibition}
+          exhibition={adaptExhibitionForUI(displayExhibition)}
           isPast={displayExhibition.state === 'past'} 
         />
       )}
@@ -123,7 +149,10 @@ const Index = () => {
           {upcomingExhibitions.length > 0 ? (
             <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {upcomingExhibitions.map((exhibition) => (
-                <ExhibitionCard key={exhibition.id} exhibition={exhibition} />
+                <ExhibitionCard 
+                  key={exhibition.id} 
+                  exhibition={adaptExhibitionForUI(exhibition)} 
+                />
               ))}
             </div>
           ) : (
@@ -140,4 +169,3 @@ const Index = () => {
 };
 
 export default Index;
-
