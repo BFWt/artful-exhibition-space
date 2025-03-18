@@ -1,3 +1,4 @@
+
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -34,7 +35,7 @@ export interface Exhibition {
   coverImage?: string;
   galleryImages?: string[];
   artist?: string;
-  contributors?: Contributor[];
+  contributors?: SupportingContributor[];
   program?: ProgramEntry[];
   state: 'current' | 'upcoming' | 'past';
   createdAt: string;
@@ -129,8 +130,7 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           state: exhibition.state,
           date: exhibition.date,
           endDate: exhibition.endDate || null,
-          germanDate: exhibition.germanDate || null,
-          germanEndDate: exhibition.germanEndDate || null
+          germanDate: exhibition.germanDate || null
         }])
         .select()
         .single();

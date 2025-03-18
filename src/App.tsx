@@ -27,7 +27,7 @@ function App() {
           <Router>
             <Routes>
               <Route path="/admin/*" element={<Admin />} />
-              <Route path="/" element={<Layout>{<Outlet />}</Layout>}>
+              <Route path="/" element={<Layout><Outlet /></Layout>}>
                 <Route index element={<Index />} />
                 <Route path="/archiv" element={<Archive />} />
                 <Route path="/kontakt" element={<Contact />} />

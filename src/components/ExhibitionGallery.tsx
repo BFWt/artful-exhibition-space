@@ -114,7 +114,6 @@ const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, title }) 
       <Dialog open={selectedImageIndex !== null} onOpenChange={closeModal}>
         <DialogContent 
           className={`p-0 border-none max-w-6xl bg-transparent shadow-none ${fullscreen ? 'fixed inset-0 w-full h-full m-0 max-h-none' : ''}`}
-          hideClose
         >
           <div className={`bg-black bg-opacity-95 rounded-lg overflow-hidden ${fullscreen ? 'h-full flex flex-col' : ''}`}>
             <div className="flex items-center justify-between p-2 text-white">

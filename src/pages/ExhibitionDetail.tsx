@@ -8,7 +8,8 @@ import {
   Music, 
   ArrowLeft, 
   Clock,
-  Calendar 
+  Calendar,
+  Clock3 
 } from 'lucide-react';
 import { useSupabase } from '@/lib/supabase';
 import { Exhibition as LocalExhibition } from '../data/exhibitions';
@@ -137,6 +138,7 @@ const ExhibitionDetail = () => {
   } = exhibition;
 
   const djs = contributors?.filter(c => c.type === 'DJ').map(c => c.name) || [];
+  const allContributors = contributors || [];
   const localExhibition = adaptExhibitionForUI(exhibition);
   
   // Format date range nicely
@@ -146,6 +148,34 @@ const ExhibitionDetail = () => {
     }
     return germanDate;
   };
+
+  // Sort program by date and startTime
+  const sortedProgram = program && program.length > 0 
+    ? [...program].sort((a, b) => {
+        // First sort by date
+        if (a.date && b.date) {
+          const dateComparison = new Date(a.date).getTime() - new Date(b.date).getTime();
+          if (dateComparison !== 0) return dateComparison;
+        }
+        
+        // Then by startTime
+        if (a.startTime && b.startTime) {
+          return a.startTime.localeCompare(b.startTime);
+        }
+        
+        return 0;
+      })
+    : [];
+
+  // Group program by date
+  const programByDate = sortedProgram.reduce((groups, event) => {
+    const date = event.date || 'Unbekannt';
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(event);
+    return groups;
+  }, {} as Record<string, typeof program>);
 
   return (
     <div className="py-8">
@@ -160,16 +190,33 @@ const ExhibitionDetail = () => {
           <Button
             variant="ghost"
             className="group flex items-center space-x-2 text-stone-600 hover:text-stone-900"
-            onClick={() => navigate(state === 'upcoming' ? '/' : '/archiv')}
+            onClick={() => navigate(state === 'past' ? '/archiv' : '/')}
           >
             <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            <span>Zurück {state === 'upcoming' ? 'zur Startseite' : 'zum Archiv'}</span>
+            <span>Zurück {state === 'past' ? 'zum Archiv' : 'zur Startseite'}</span>
           </Button>
         </motion.div>
         
+        {/* Hero Image */}
+        {coverImage && (
+          <motion.div 
+            className="w-full h-[40vh] sm:h-[50vh] mb-8 relative rounded-lg overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10" />
+            <img 
+              src={coverImage} 
+              alt={title} 
+              className="w-full h-full object-cover"
+            />
+          </motion.div>
+        )}
+        
         {/* Exhibition Header */}
         <motion.div 
-          className="mb-12"
+          className="mb-12 text-center"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -203,7 +250,7 @@ const ExhibitionDetail = () => {
               {title}
             </motion.h1>
             
-            <div className="flex flex-wrap items-center gap-4 text-stone-600">
+            <div className="flex flex-wrap items-center justify-center gap-4 text-stone-600">
               <div className="flex items-center space-x-1">
                 <Calendar className="h-4 w-4" />
                 <span>{formatDateRange()}</span>
@@ -225,12 +272,39 @@ const ExhibitionDetail = () => {
             </div>
           </div>
           
-          <div className="max-w-prose text-stone-600">
+          <div className="max-w-prose mx-auto text-stone-600">
             {description?.split('\n').map((paragraph, idx) => (
               <p key={idx} className="mb-3">{paragraph}</p>
             ))}
           </div>
         </motion.div>
+        
+        {/* Contributors */}
+        {allContributors.length > 0 && (
+          <motion.div 
+            className="mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <h2 className="font-serif text-xl font-medium text-stone-900 mb-4 text-center">
+              Mitwirkende
+            </h2>
+            <div className="flex flex-wrap justify-center gap-4">
+              {allContributors.map((contributor, index) => (
+                <div 
+                  key={index} 
+                  className="bg-stone-50 rounded-md px-4 py-2 flex items-center space-x-2"
+                >
+                  {contributor.icon && (
+                    <span className="text-lg">{contributor.icon}</span>
+                  )}
+                  <span>{contributor.name}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
         
         {/* Exhibition Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -244,11 +318,44 @@ const ExhibitionDetail = () => {
             <h2 className="font-serif text-xl font-medium text-stone-900 mb-4">
               Programm
             </h2>
-            <p className="text-sm text-stone-500 mb-2">
-              {formatDateRange()}
-            </p>
-            {program && program.length > 0 ? (
-              <ExhibitionTimeline events={localExhibition.timeline} />
+            
+            {Object.keys(programByDate).length > 0 ? (
+              <div className="space-y-6">
+                {Object.entries(programByDate).map(([date, events]) => (
+                  <div key={date} className="space-y-3">
+                    <div className="bg-stone-100 p-2 rounded-md text-stone-700 font-medium">
+                      {date}
+                    </div>
+                    
+                    <div className="space-y-3 pl-4">
+                      {events.map((event, index) => (
+                        <div key={index} className="border-l-2 border-stone-300 pl-4 pb-4 relative">
+                          <div className="absolute w-3 h-3 bg-stone-400 rounded-full -left-[7px] top-1" />
+                          
+                          <div className="flex items-start space-x-3">
+                            <div className="flex items-center text-stone-500 whitespace-nowrap font-medium">
+                              <Clock3 className="h-3.5 w-3.5 mr-1 inline" />
+                              <span>{event.startTime || ''}</span>
+                              {event.endTime && (
+                                <>
+                                  <span className="mx-1">-</span>
+                                  <span>{event.endTime}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <h3 className="font-medium text-stone-800 mt-1">{event.title}</h3>
+                          
+                          {event.description && (
+                            <p className="text-sm text-stone-600 mt-1">{event.description}</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : (
               <div className="bg-stone-50 p-4 rounded-md text-stone-500 text-center">
                 Kein Programm verfügbar
@@ -269,7 +376,7 @@ const ExhibitionDetail = () => {
             
             {galleryImages && galleryImages.length > 0 ? (
               <ExhibitionGallery 
-                images={[coverImage, ...galleryImages].filter(Boolean)} 
+                images={galleryImages.filter(Boolean)} 
                 title={title} 
               />
             ) : (

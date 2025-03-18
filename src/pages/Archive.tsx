@@ -1,19 +1,48 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 import ExhibitionCard from '../components/ExhibitionCard';
-import { getPastExhibitions, Exhibition } from '../data/exhibitions';
+import { Exhibition } from '../data/exhibitions';
+import { useSupabase } from '@/lib/supabase';
 
 const Archive = () => {
-  const pastExhibitions = getPastExhibitions();
+  const { exhibitions, isLoading } = useSupabase();
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Filter past exhibitions from Supabase data
+  const pastExhibitions = exhibitions?.filter(exhibition => 
+    exhibition.state === 'past'
+  ) || [];
+  
+  // Convert Supabase Exhibition to local Exhibition format for ExhibitionCard
+  const adaptExhibitionForUI = (exhibition: any): Exhibition => {
+    return {
+      id: String(exhibition.id), // Convert number to string
+      title: exhibition.title || '',
+      date: exhibition.date || '',
+      germanDate: exhibition.germanDate || '',
+      description: exhibition.description || '',
+      coverImage: exhibition.coverImage || '',
+      detailImages: exhibition.galleryImages || [],
+      artist: exhibition.artist || '',
+      djs: exhibition.contributors?.filter(c => c.type === 'DJ').map(c => c.name) || [],
+      timeline: exhibition.program?.map(p => ({
+        time: p.timeframe || `${p.startTime || ''} - ${p.endTime || ''}`,
+        title: p.title || '',
+        description: p.description || '',
+        isKeyMoment: false
+      })) || [],
+      isCurrent: exhibition.state === 'current',
+      isUpcoming: exhibition.state === 'upcoming'
+    };
+  };
   
   // Filter exhibitions based on search term
   const filteredExhibitions = pastExhibitions.filter(exhibition => 
     exhibition.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (exhibition.artist && exhibition.artist.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    exhibition.description.toLowerCase().includes(searchTerm.toLowerCase())
+    (exhibition.description && exhibition.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
   
   const container = {
@@ -25,6 +54,16 @@ const Archive = () => {
       }
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="py-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-stone-800"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-16">
@@ -86,7 +125,7 @@ const Archive = () => {
             {filteredExhibitions.map((exhibition) => (
               <ExhibitionCard
                 key={exhibition.id}
-                exhibition={exhibition}
+                exhibition={adaptExhibitionForUI(exhibition)}
               />
             ))}
           </motion.div>
