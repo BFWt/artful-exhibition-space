@@ -11,7 +11,7 @@ interface ExhibitionCardProps {
 }
 
 const ExhibitionCard: React.FC<ExhibitionCardProps> = ({ exhibition, featured = false }) => {
-  const { id, title, germanDate, coverImage, artist, djs } = exhibition;
+  const { id, title, germanDate, coverImage, artist, djs, isCurrent, isUpcoming } = exhibition;
   const [imageLoaded, setImageLoaded] = useState(false);
   
   // Handle mouseMove effect for cards
@@ -29,7 +29,7 @@ const ExhibitionCard: React.FC<ExhibitionCardProps> = ({ exhibition, featured = 
   const maskImage = useMotionTemplate`radial-gradient(300px at ${mouseX}px ${mouseY}px, rgba(255,255,255,0.15), transparent)`;
   
   return (
-    <Link to={exhibition.isCurrent || exhibition.isUpcoming ? '/' : `/ausstellung/${id}`}>
+    <Link to={`/ausstellung/${id}`}>
       <motion.div 
         className={`group relative overflow-hidden rounded-md border border-stone-200 bg-white shadow-sm transition-all duration-300 hover:shadow-md ${featured ? 'aspect-video md:aspect-auto' : 'aspect-[4/3]'}`}
         onMouseMove={handleMouseMove}
@@ -45,6 +45,21 @@ const ExhibitionCard: React.FC<ExhibitionCardProps> = ({ exhibition, featured = 
         
         {/* Image container */}
         <div className="relative h-full w-full overflow-hidden">
+          {/* State badge */}
+          {(isCurrent || isUpcoming) && (
+            <div className="absolute top-2 right-2 z-20">
+              <span 
+                className={`inline-block px-2 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${
+                  isCurrent 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-blue-100 text-blue-800'
+                }`}
+              >
+                {isCurrent ? 'Aktuell' : 'Kommend'}
+              </span>
+            </div>
+          )}
+          
           {/* Overlay gradient */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10" />
           

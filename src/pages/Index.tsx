@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import CurrentExhibition from '../components/CurrentExhibition';
 import ExhibitionCard from '../components/ExhibitionCard';
@@ -122,10 +123,12 @@ const Index = () => {
       
       {/* Current Exhibition or Newest Past Exhibition */}
       {displayExhibition && (
-        <CurrentExhibition 
-          exhibition={adaptExhibitionForUI(displayExhibition)}
-          isPast={displayExhibition.state === 'past'} 
-        />
+        <Link to={`/ausstellung/${displayExhibition.id}`}>
+          <CurrentExhibition 
+            exhibition={adaptExhibitionForUI(displayExhibition)}
+            isPast={displayExhibition.state === 'past'} 
+          />
+        </Link>
       )}
       
       {/* Upcoming Exhibitions */}

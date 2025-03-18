@@ -1,4 +1,3 @@
-
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -24,25 +23,23 @@ export type ProgramEntry = {
   endTime?: string; // New time field
 };
 
-export type Exhibition = {
+export interface Exhibition {
   id: number;
   title: string;
-  subtitle: string;
-  description: string;
-  artist: string;
-  coverImage?: string; // Made coverImage optional
-  galleryImages: string[];
+  subtitle?: string;
+  description?: string;
+  date?: string;
+  germanDate?: string;
+  endDate?: string;
+  coverImage?: string;
+  galleryImages?: string[];
+  artist?: string;
+  contributors?: Contributor[];
+  program?: ProgramEntry[];
   state: 'current' | 'upcoming' | 'past';
   createdAt: string;
   updatedAt: string;
-  date: string; // Start date
-  endDate?: string; // End date - new field
-  germanDate?: string;
-  germanEndDate?: string; // German formatted end date
-  timeline?: string;
-  contributors?: SupportingContributor[];
-  program?: ProgramEntry[];
-};
+}
 
 type SupabaseContextType = {
   supabase: SupabaseClient;
@@ -54,6 +51,7 @@ type SupabaseContextType = {
   updateExhibition: (id: number, exhibition: Partial<Exhibition>) => Promise<Exhibition | null>;
   deleteExhibition: (id: number) => Promise<boolean>;
   uploadImage: (file: File, path: string) => Promise<string | null>;
+  getExhibitionById: (id: number) => Promise<Exhibition | null>;
 };
 
 const supabaseUrl = 'https://vtwhaecrsdrdqzqftghn.supabase.co';
@@ -432,27 +430,44 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const getExhibitionById = async (id: number) => {
+    try {
+      const { data, error } = await supabase
+        .from('exhibitions')
+        .select(`
+          *,
+          contributors(*),
+          program(*)
+        `)
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error getting exhibition by ID:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     fetchExhibitions();
   }, []);
 
-  return (
-    <SupabaseContext.Provider
-      value={{
-        supabase,
-        exhibitions,
-        isLoading,
-        error,
-        fetchExhibitions,
-        addExhibition,
-        updateExhibition,
-        deleteExhibition,
-        uploadImage
-      }}
-    >
-      {children}
-    </SupabaseContext.Provider>
-  );
+  const value = {
+    supabase,
+    exhibitions,
+    isLoading,
+    error,
+    fetchExhibitions,
+    addExhibition,
+    updateExhibition,
+    deleteExhibition,
+    uploadImage,
+    getExhibitionById,
+  };
+
+  return <SupabaseContext.Provider value={value}>{children}</SupabaseContext.Provider>;
 };
 
 export const useSupabase = () => {
