@@ -44,8 +44,9 @@ const Index = () => {
     exhibitions?.filter(e => e.state === 'past')
       .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0] : null;
   
-  // Get upcoming exhibitions
-  const upcomingExhibitions = exhibitions?.filter(e => e.state === 'upcoming') || [];
+  // Get upcoming exhibitions and sort by date
+  const upcomingExhibitions = exhibitions?.filter(e => e.state === 'upcoming')
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) || [];
   
   // Display exhibition will be current or the newest past
   const displayExhibition = currentExhibition || newestPastExhibition;

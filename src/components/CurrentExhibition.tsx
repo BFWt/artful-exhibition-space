@@ -22,12 +22,17 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
     artist,
     contributors,
     program,
-    createdAt
+    germanDate,
+    germanEndDate
   } = exhibition;
 
-  // Format the date
-  const formattedDate = createdAt ? 
-    format(new Date(createdAt), 'EEEE, d. MMMM yyyy', { locale: de }) : '';
+  // Format date range
+  const formattedDate = () => {
+    if (germanEndDate && germanEndDate !== germanDate) {
+      return `${germanDate} - ${germanEndDate}`;
+    }
+    return germanDate;
+  };
 
   return (
     <div className="overflow-hidden py-8 md:py-12">
@@ -56,6 +61,14 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
           >
             {title}
           </motion.h2>
+          <motion.p
+            className="mt-2 text-lg text-stone-600"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
+            {formattedDate()}
+          </motion.p>
           {subtitle && (
             <motion.p
               className="mt-2 text-xl text-stone-600"
@@ -88,7 +101,7 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
               <div className="flex flex-col text-white">
                 <div className="flex items-center space-x-2 text-white/90 mb-2">
                   <CalendarDays className="h-4 w-4" />
-                  <span>{formattedDate}</span>
+                  <span>{formattedDate()}</span>
                 </div>
                 {artist && (
                   <div className="flex items-center space-x-2 text-white/90">
@@ -131,7 +144,7 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
                   Programm
                 </h3>
                 <p className="text-sm text-stone-500 mb-2">
-                  {formattedDate}
+                  {formattedDate()}
                 </p>
                 <div className="space-y-4">
                   {program.map((event, index) => (
@@ -143,7 +156,11 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
                         <div className="mt-1">
                           <h4 className="font-medium">{event.title}</h4>
                           {event.description && (
-                            <p className="text-sm text-stone-600 mt-1">{event.description}</p>
+                            <div className="text-sm text-stone-600 mt-1">
+                              {event.description.split('\n').map((line, i) => (
+                                <p key={i}>{line}</p>
+                              ))}
+                            </div>
                           )}
                         </div>
                       </div>

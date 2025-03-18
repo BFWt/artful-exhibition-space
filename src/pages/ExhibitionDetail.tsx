@@ -65,8 +65,8 @@ const ExhibitionDetail = () => {
       coverImage: exhibition.coverImage || '',
       detailImages: exhibition.galleryImages || [],
       artist: exhibition.artist || '',
-      djs: exhibition.contributors?.filter(c => c.type === 'DJ').map(c => c.name) || [],
-      timeline: exhibition.program?.map(p => ({
+      djs: exhibition.contributors?.filter((c: any) => c.type === 'DJ').map((c: any) => c.name) || [],
+      timeline: exhibition.program?.map((p: any) => ({
         time: p.timeframe || `${p.startTime || ''} - ${p.endTime || ''}`,
         title: p.title || '',
         description: p.description || '',
@@ -127,6 +127,7 @@ const ExhibitionDetail = () => {
   const {
     title,
     germanDate,
+    germanEndDate,
     description,
     coverImage,
     galleryImages,
@@ -137,14 +138,14 @@ const ExhibitionDetail = () => {
     endDate
   } = exhibition;
 
-  const djs = contributors?.filter(c => c.type === 'DJ').map(c => c.name) || [];
+  const djs = contributors?.filter((c: any) => c.type === 'DJ').map((c: any) => c.name) || [];
   const allContributors = contributors || [];
   const localExhibition = adaptExhibitionForUI(exhibition);
   
   // Format date range nicely
   const formatDateRange = () => {
-    if (endDate && endDate !== germanDate) {
-      return `${germanDate} - ${endDate}`;
+    if (germanEndDate && germanEndDate !== germanDate) {
+      return `${germanDate} - ${germanEndDate}`;
     }
     return germanDate;
   };
@@ -168,14 +169,14 @@ const ExhibitionDetail = () => {
     : [];
 
   // Group program by date
-  const programByDate = sortedProgram.reduce((groups, event) => {
+  const programByDate = sortedProgram.reduce((groups: Record<string, any[]>, event) => {
     const date = event.date || 'Unbekannt';
     if (!groups[date]) {
       groups[date] = [];
     }
     groups[date].push(event);
     return groups;
-  }, {} as Record<string, typeof program>);
+  }, {} as Record<string, any[]>);
 
   return (
     <div className="py-8">
@@ -348,7 +349,11 @@ const ExhibitionDetail = () => {
                           <h3 className="font-medium text-stone-800 mt-1">{event.title}</h3>
                           
                           {event.description && (
-                            <p className="text-sm text-stone-600 mt-1">{event.description}</p>
+                            <div className="text-sm text-stone-600 mt-1">
+                              {event.description.split('\n').map((line, i) => (
+                                <p key={i}>{line}</p>
+                              ))}
+                            </div>
                           )}
                         </div>
                       ))}

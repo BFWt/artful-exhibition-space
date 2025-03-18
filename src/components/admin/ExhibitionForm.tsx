@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSupabase, Exhibition, SupportingContributor, ProgramEntry } from '@/lib/supabase';
@@ -55,8 +56,6 @@ const formSchema = z.object({
   })).optional(),
   program: z.array(z.object({
     id: z.number().optional(),
-    day: z.string().min(1, 'Tag ist erforderlich'),
-    timeframe: z.string().min(1, 'Zeitrahmen ist erforderlich'),
     title: z.string().min(1, 'Titel ist erforderlich'),
     description: z.string().optional(),
     date: z.string().optional(), // Proper date field
@@ -192,9 +191,6 @@ const ExhibitionForm = () => {
       })) || [];
       
       const program = values.program?.map(item => ({
-        id: item.id,
-        day: item.day,
-        timeframe: item.timeframe,
         title: item.title,
         description: item.description || '',
         date: item.date || '',
@@ -813,43 +809,6 @@ const ExhibitionForm = () => {
                             />
                           </div>
                           
-                          {/* Keep legacy fields too for compatibility */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                              control={form.control}
-                              name={`program.${index}.day`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Tag (Legacy)</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="z.B. Freitag, 12.05.2023" {...field} />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Für Kompatibilität (bevorzugt das neue Datum verwenden)
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={form.control}
-                              name={`program.${index}.timeframe`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className={index !== 0 ? 'sr-only' : ''}>Zeitrahmen (Legacy)</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="z.B. 18:00 - 20:00 Uhr" {...field} />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Für Kompatibilität (bevorzugt die neuen Zeitfelder verwenden)
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                          
                           <FormField
                             control={form.control}
                             name={`program.${index}.title`}
@@ -897,7 +856,7 @@ const ExhibitionForm = () => {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => appendProgram({ day: '', timeframe: '', title: '', description: '', date: '', startTime: '', endTime: '' })}
+                      onClick={() => appendProgram({ title: '', description: '', date: '', startTime: '', endTime: '' })}
                       className="mt-2"
                     >
                       <Plus className="mr-2 h-4 w-4" />

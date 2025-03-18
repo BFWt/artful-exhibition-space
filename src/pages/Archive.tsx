@@ -15,6 +15,11 @@ const Archive = () => {
     exhibition.state === 'past'
   ) || [];
   
+  // Sort past exhibitions by date (newest first)
+  const sortedPastExhibitions = [...pastExhibitions].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  
   // Convert Supabase Exhibition to local Exhibition format for ExhibitionCard
   const adaptExhibitionForUI = (exhibition: any): Exhibition => {
     return {
@@ -39,7 +44,7 @@ const Archive = () => {
   };
   
   // Filter exhibitions based on search term
-  const filteredExhibitions = pastExhibitions.filter(exhibition => 
+  const filteredExhibitions = sortedPastExhibitions.filter(exhibition => 
     exhibition.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (exhibition.artist && exhibition.artist.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (exhibition.description && exhibition.description.toLowerCase().includes(searchTerm.toLowerCase()))
