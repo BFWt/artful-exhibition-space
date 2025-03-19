@@ -3,14 +3,14 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Layers, Calendar, Clock, Archive, AlertTriangle, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useSupabase } from '@/lib/supabase';
+import { useSupabase, getExhibitionState } from '@/lib/supabase';
 
 const AdminDashboard = () => {
   const { exhibitions, isLoading, error } = useSupabase();
 
-  const currentExhibitions = exhibitions?.filter(e => e.state === 'current') || [];
-  const upcomingExhibitions = exhibitions?.filter(e => e.state === 'upcoming') || [];
-  const pastExhibitions = exhibitions?.filter(e => e.state === 'past') || [];
+  const currentExhibitions = exhibitions?.filter(e => getExhibitionState(e) === 'current') || [];
+  const upcomingExhibitions = exhibitions?.filter(e => getExhibitionState(e) === 'upcoming') || [];
+  const pastExhibitions = exhibitions?.filter(e => getExhibitionState(e) === 'past') || [];
 
   if (isLoading) {
     return (

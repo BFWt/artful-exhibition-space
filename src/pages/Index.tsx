@@ -38,13 +38,13 @@ const Index = () => {
   
   // Categorize exhibitions based on dates
   const categorizeExhibitions = () => {
-    if (!exhibitions) return { current: null, upcoming: [], past: [] };
+    if (!exhibitions) return { current: [], upcoming: [], past: [] };
     
     const now = new Date();
     now.setHours(0, 0, 0, 0);
     
     const categorized = {
-      current: null as Exhibition | null,
+      current: [] as Exhibition[],
       upcoming: [] as Exhibition[],
       past: [] as Exhibition[]
     };
@@ -53,27 +53,19 @@ const Index = () => {
       const state = getExhibitionState(exhibition);
       
       if (state === 'current') {
-        // If we already have a current exhibition, compare end dates to get the one that ends later
-        if (categorized.current) {
-          const currentEndDate = categorized.current.endDate 
-            ? new Date(categorized.current.endDate) 
-            : new Date(categorized.current.date);
-            
-          const newEndDate = exhibition.endDate 
-            ? new Date(exhibition.endDate) 
-            : new Date(exhibition.date);
-            
-          if (newEndDate > currentEndDate) {
-            categorized.current = exhibition;
-          }
-        } else {
-          categorized.current = exhibition;
-        }
+        categorized.current.push(exhibition);
       } else if (state === 'upcoming') {
         categorized.upcoming.push(exhibition);
       } else if (state === 'past') {
         categorized.past.push(exhibition);
       }
+    });
+    
+    // Sort current exhibitions by end date (ascending)
+    categorized.current.sort((a, b) => {
+      const aEndDate = a.endDate ? new Date(a.endDate) : new Date(a.date);
+      const bEndDate = b.endDate ? new Date(b.endDate) : new Date(b.date);
+      return aEndDate.getTime() - bEndDate.getTime();
     });
     
     // Sort upcoming exhibitions by start date (ascending)
@@ -91,8 +83,8 @@ const Index = () => {
   
   const { current, upcoming, past } = categorizeExhibitions();
   
-  // Display exhibition will be current or the newest upcoming
-  const displayExhibition = current || (upcoming.length > 0 ? upcoming[0] : null);
+  // Display exhibitions will be all current ones or the newest upcoming if no current
+  const displayExhibitions = current.length > 0 ? current : upcoming.length > 0 ? [upcoming[0]] : [];
   
   if (isLoading) {
     return (
@@ -140,15 +132,34 @@ const Index = () => {
         </div>
       </div>
       
-      {/* Current Exhibition or Next Upcoming Exhibition */}
-      {displayExhibition && (
-        <Link to={`/ausstellung/${displayExhibition.id}`}>
+      {/* Current Exhibition Section Header */}
+      {displayExhibitions.length > 0 && (
+        <div className="py-8">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <motion.div 
+              className="text-center mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <h2 className="font-serif text-3xl font-medium tracking-tight text-stone-900">
+                {displayExhibitions.length > 1 ? "Aktuelle Ausstellungen" : 
+                  current.length > 0 ? "Aktuelle Ausstellung" : "Nächste Ausstellung"}
+              </h2>
+            </motion.div>
+          </div>
+        </div>
+      )}
+      
+      {/* Current or Next Upcoming Exhibitions */}
+      {displayExhibitions.map((exhibition, index) => (
+        <Link key={exhibition.id} to={`/ausstellung/${exhibition.id}`}>
           <CurrentExhibition 
-            exhibition={displayExhibition}
-            isPast={getExhibitionState(displayExhibition) === 'past'} 
+            exhibition={exhibition}
+            isPast={getExhibitionState(exhibition) === 'past'} 
           />
         </Link>
-      )}
+      ))}
       
       {/* Upcoming Exhibitions */}
       <div className="bg-stone-50 py-12">

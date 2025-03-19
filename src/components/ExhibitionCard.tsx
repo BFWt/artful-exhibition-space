@@ -11,7 +11,7 @@ interface ExhibitionCardProps {
 }
 
 const ExhibitionCard: React.FC<ExhibitionCardProps> = ({ exhibition, featured = false }) => {
-  const { id, title, germanDate, germanEndDate, coverImage, artist, djs, contributors } = exhibition;
+  const { id, title, germanDate, germanEndDate, coverImage, artist, contributors } = exhibition;
   const [imageLoaded, setImageLoaded] = useState(false);
   
   // Determine the exhibition state based on dates
