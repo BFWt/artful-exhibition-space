@@ -37,7 +37,7 @@ const ExhibitionList = () => {
   const [sortColumn, setSortColumn] = useState('date');
   const [sortDirection, setSortDirection] = useState('desc');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [exhibitionToDelete, setExhibitionToDelete] = useState<string | null>(null);
+  const [exhibitionToDelete, setExhibitionToDelete] = useState<number | null>(null);
 
   // Handle sorting
   const handleSort = (column: string) => {
@@ -67,7 +67,7 @@ const ExhibitionList = () => {
   }, [exhibitions, sortColumn, sortDirection]);
 
   // Handle delete click
-  const handleDeleteClick = (id: string) => {
+  const handleDeleteClick = (id: number) => {
     setExhibitionToDelete(id);
     setDeleteDialogOpen(true);
   };

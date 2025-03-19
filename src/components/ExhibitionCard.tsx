@@ -30,7 +30,7 @@ const ExhibitionCard: React.FC<ExhibitionCardProps> = ({ exhibition, featured = 
   
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
     const { clientX, clientY, currentTarget } = event;
-    const { left, top, width, height } = currentTarget.getBoundingClientRect();
+    const { left, top } = currentTarget.getBoundingClientRect();
     
     mouseX.set(clientX - left);
     mouseY.set(clientY - top);

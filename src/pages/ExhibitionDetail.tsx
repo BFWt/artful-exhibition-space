@@ -25,8 +25,8 @@ const ExhibitionDetail = () => {
     }
   }, [error, toast]);
   
-  // Find the exhibition by ID
-  const exhibition = exhibitions?.find(e => e.id === id);
+  // Find the exhibition by ID - convert string id to number for comparison
+  const exhibition = exhibitions?.find(e => e.id === Number(id));
   
   // If loading
   if (isLoading) {
@@ -60,7 +60,7 @@ const ExhibitionDetail = () => {
     germanDate, 
     germanEndDate,
     coverImage, 
-    detailImages, 
+    galleryImages, 
     artist, 
     contributors, 
     program,
@@ -86,8 +86,8 @@ const ExhibitionDetail = () => {
     }
   };
   
-  // All images for the gallery (cover image + detail images)
-  const allImages = [coverImage, ...(detailImages || [])].filter(Boolean) as string[];
+  // All images for the gallery (cover image + gallery images)
+  const allImages = [coverImage, ...(galleryImages || [])].filter(Boolean) as string[];
   
   return (
     <div className="py-10 sm:py-16">
@@ -260,7 +260,7 @@ const ExhibitionDetail = () => {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
-              <ExhibitionGallery images={allImages} />
+              <ExhibitionGallery images={allImages} title={title} />
             </motion.div>
           )}
           

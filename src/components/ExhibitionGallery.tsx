@@ -20,10 +20,10 @@ import {
 
 interface ExhibitionGalleryProps {
   images: string[];
-  title: string;
+  title?: string;
 }
 
-const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, title }) => {
+const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, title = "Ausstellung" }) => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
