@@ -38,6 +38,7 @@ import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon, Image, Plus, X, Music, User, Coffee, AlertTriangle, Calendar as CalendarIcon2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   title: z.string().min(1, 'Titel ist erforderlich'),
@@ -77,6 +78,7 @@ const ExhibitionForm = () => {
   const [uploading, setUploading] = useState(false);
   const [selectedStartDate, setSelectedStartDate] = useState<Date | undefined>(new Date());
   const [selectedEndDate, setSelectedEndDate] = useState<Date | undefined>(undefined);
+  const [programDates, setProgramDates] = useState<(Date | undefined)[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -134,6 +136,14 @@ const ExhibitionForm = () => {
           setCoverImagePreview(exhibition.coverImage);
         }
         setGalleryImagePreviews(exhibition.galleryImages || []);
+        
+        // Initialize program dates if they exist
+        if (exhibition.program && exhibition.program.length > 0) {
+          const dates = exhibition.program.map(item => 
+            item.germanDate ? new Date(parseGermanDate(item.germanDate)) : undefined
+          );
+          setProgramDates(dates);
+        }
       }
     }
   }, [isEditing, exhibitions, id, form]);
@@ -320,6 +330,33 @@ const ExhibitionForm = () => {
       default:
         return <User className="h-4 w-4" />;
     }
+  };
+
+  const parseGermanDate = (germanDate: string): Date => {
+    try {
+      const parts = germanDate.split(' ');
+      if (parts.length === 3) {
+        const day = parseInt(parts[0].replace('.', ''));
+        const month = getMonthNumber(parts[1]);
+        const year = parseInt(parts[2]);
+        
+        if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+          return new Date(year, month, day);
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing date:', e);
+    }
+    
+    return new Date();
+  };
+
+  const getMonthNumber = (monthName: string): number => {
+    const months = [
+      'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+      'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+    ];
+    return months.findIndex(m => m === monthName);
   };
 
   if (isLoading) {
@@ -713,15 +750,48 @@ const ExhibitionForm = () => {
                                 control={form.control}
                                 name={`program.${index}.germanDate`}
                                 render={({ field }) => (
-                                  <FormItem>
+                                  <FormItem className="flex flex-col">
                                     <FormLabel className={index !== 0 ? 'sr-only' : ''}>Datum</FormLabel>
-                                    <FormControl>
-                                      <Input 
-                                        type="text" 
-                                        placeholder="Datum (z.B. 01. Januar 2023)" 
-                                        {...field} 
-                                      />
-                                    </FormControl>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <FormControl>
+                                          <Button
+                                            variant="outline"
+                                            className={cn(
+                                              "w-full pl-3 text-left font-normal",
+                                              !field.value ? "text-muted-foreground" : ""
+                                            )}
+                                          >
+                                            {field.value ? (
+                                              field.value
+                                            ) : (
+                                              <span>Datum wählen</span>
+                                            )}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                          </Button>
+                                        </FormControl>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                          mode="single"
+                                          selected={programDates[index]}
+                                          onSelect={(date) => {
+                                            const newDates = [...programDates];
+                                            newDates[index] = date;
+                                            setProgramDates(newDates);
+                                            
+                                            if (date) {
+                                              const formattedDate = format(date, 'dd. MMMM yyyy', { locale: de });
+                                              field.onChange(formattedDate);
+                                            } else {
+                                              field.onChange('');
+                                            }
+                                          }}
+                                          initialFocus
+                                          className="p-3 pointer-events-auto"
+                                        />
+                                      </PopoverContent>
+                                    </Popover>
                                     <FormMessage />
                                   </FormItem>
                                 )}
@@ -816,7 +886,10 @@ const ExhibitionForm = () => {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => appendProgram({ title: '', description: '', startTime: '', endTime: '', germanDate: '' })}
+                      onClick={() => {
+                        appendProgram({ title: '', description: '', startTime: '', endTime: '', germanDate: '' });
+                        setProgramDates([...programDates, undefined]);
+                      }}
                       className="mt-2"
                     >
                       <Plus className="mr-2 h-4 w-4" />
