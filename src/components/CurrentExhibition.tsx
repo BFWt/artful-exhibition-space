@@ -1,9 +1,8 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays, User, Music, Coffee } from 'lucide-react';
-import { Exhibition } from '@/lib/supabase';
-import { format } from 'date-fns';
-import { de } from 'date-fns/locale';
+import { Exhibition, getExhibitionState } from '@/lib/supabase';
 
 interface CurrentExhibitionProps {
   exhibition: Exhibition;
@@ -25,6 +24,9 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
     germanEndDate
   } = exhibition;
 
+  // Determine the exhibition state based on dates
+  const exhibitionState = getExhibitionState(exhibition);
+
   // Format date range
   const formattedDate = () => {
     if (germanEndDate && germanEndDate !== germanDate) {
@@ -44,13 +46,17 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
         <div className="text-center mb-6">
           <motion.span 
             className={`tag text-xs mb-2 uppercase tracking-wider px-3 py-1 ${
-              isPast ? 'bg-stone-200 text-stone-600' : 'bg-stone-100 text-stone-700'
+              exhibitionState === 'past' ? 'bg-stone-200 text-stone-600' : 
+              exhibitionState === 'current' ? 'bg-green-100 text-green-700' :
+              'bg-blue-100 text-blue-700'
             }`}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            {isPast ? 'Letzte Ausstellung' : 'Aktuelle Ausstellung'}
+            {exhibitionState === 'past' ? 'Vergangene Ausstellung' : 
+             exhibitionState === 'current' ? 'Aktuelle Ausstellung' :
+             'Nächste Ausstellung'}
           </motion.span>
           <motion.h2 
             className="mt-2 font-serif text-3xl font-medium tracking-tight text-stone-900 sm:text-4xl"
@@ -106,12 +112,12 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
                     <span>{artist}</span>
                   </div>
                 )}
-                {contributors && contributors.length > 0 && contributors.some(c => c.type === 'Music' || c.type === 'Musik') && (
+                {contributors && contributors.length > 0 && contributors.some(c => c.icon === 'music') && (
                   <div className="flex items-center space-x-2 text-white/90 mt-1">
                     <Music className="h-4 w-4" />
                     <span>
                       {contributors
-                        .filter(c => c.type === 'Music' || c.type === 'Musik')
+                        .filter(c => c.icon === 'music')
                         .map(c => c.name)
                         .join(', ')}
                     </span>
@@ -147,7 +153,9 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
                     <div key={index} className="border-l-2 border-stone-200 pl-4 py-1">
                       <div className="flex flex-col">
                         <div className="flex items-center text-stone-700 font-medium">
-                          <span>{event.timeframe}</span>
+                          <span>{event.startTime && event.endTime 
+                            ? `${event.startTime} - ${event.endTime}` 
+                            : event.startTime || ''}</span>
                         </div>
                         <div className="mt-1">
                           <h4 className="font-medium">{event.title}</h4>

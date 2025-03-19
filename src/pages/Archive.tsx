@@ -1,46 +1,23 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 import ExhibitionCard from '../components/ExhibitionCard';
-import { Exhibition } from '../data/exhibitions';
-import { useSupabase } from '@/lib/supabase';
+import { useSupabase, getExhibitionState } from '@/lib/supabase';
 
 const Archive = () => {
   const { exhibitions, isLoading } = useSupabase();
   const [searchTerm, setSearchTerm] = useState('');
   
-  // Filter past exhibitions from Supabase data
+  // Filter past exhibitions using the date-based logic
   const pastExhibitions = exhibitions?.filter(exhibition => 
-    exhibition.state === 'past'
+    getExhibitionState(exhibition) === 'past'
   ) || [];
   
   // Sort past exhibitions by date (newest first)
   const sortedPastExhibitions = [...pastExhibitions].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
   );
-  
-  // Convert Supabase Exhibition to local Exhibition format for ExhibitionCard
-  const adaptExhibitionForUI = (exhibition: any): Exhibition => {
-    return {
-      id: String(exhibition.id), // Convert number to string
-      title: exhibition.title || '',
-      date: exhibition.date || '',
-      germanDate: exhibition.germanDate || '',
-      description: exhibition.description || '',
-      coverImage: exhibition.coverImage || '',
-      detailImages: exhibition.galleryImages || [],
-      artist: exhibition.artist || '',
-      djs: exhibition.contributors?.filter(c => c.type === 'DJ').map(c => c.name) || [],
-      timeline: exhibition.program?.map(p => ({
-        time: p.timeframe || `${p.startTime || ''} - ${p.endTime || ''}`,
-        title: p.title || '',
-        description: p.description || '',
-        isKeyMoment: false
-      })) || [],
-      isCurrent: exhibition.state === 'current',
-      isUpcoming: exhibition.state === 'upcoming'
-    };
-  };
   
   // Filter exhibitions based on search term
   const filteredExhibitions = sortedPastExhibitions.filter(exhibition => 
@@ -129,7 +106,7 @@ const Archive = () => {
             {filteredExhibitions.map((exhibition) => (
               <ExhibitionCard
                 key={exhibition.id}
-                exhibition={adaptExhibitionForUI(exhibition)}
+                exhibition={exhibition}
               />
             ))}
           </motion.div>

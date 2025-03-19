@@ -44,7 +44,6 @@ const formSchema = z.object({
   subtitle: z.string().optional(),
   description: z.string().min(1, 'Beschreibung ist erforderlich'),
   artist: z.string().min(1, 'Künstler ist erforderlich'),
-  state: z.enum(['current', 'upcoming', 'past']),
   coverImage: z.string().optional(),
   galleryImages: z.array(z.string()).optional(),
   date: z.string().min(1, 'Startdatum ist erforderlich'),
@@ -57,9 +56,9 @@ const formSchema = z.object({
     id: z.number().optional(),
     title: z.string().min(1, 'Titel ist erforderlich'),
     description: z.string().optional(),
-    date: z.string().optional(),
     startTime: z.string().optional(),
     endTime: z.string().optional(),
+    germanDate: z.string().optional(),
   })).optional()
 });
 
@@ -86,7 +85,6 @@ const ExhibitionForm = () => {
       subtitle: '',
       description: '',
       artist: '',
-      state: 'upcoming',
       coverImage: '',
       galleryImages: [],
       date: format(new Date(), 'yyyy-MM-dd'),
@@ -120,7 +118,6 @@ const ExhibitionForm = () => {
           subtitle: exhibition.subtitle || '',
           description: exhibition.description,
           artist: exhibition.artist,
-          state: exhibition.state,
           coverImage: exhibition.coverImage || '',
           galleryImages: exhibition.galleryImages || [],
           date: exhibition.date || format(new Date(), 'yyyy-MM-dd'),
@@ -188,9 +185,9 @@ const ExhibitionForm = () => {
       const program = values.program?.map(item => ({
         title: item.title,
         description: item.description || '',
-        date: item.date || '',
         startTime: item.startTime || '',
-        endTime: item.endTime || ''
+        endTime: item.endTime || '',
+        germanDate: item.germanDate || ''
       })) || [];
       
       const germanDate = format(new Date(values.date), 'dd. MMMM yyyy', { locale: de });
@@ -201,7 +198,6 @@ const ExhibitionForm = () => {
         subtitle: values.subtitle || '',
         description: values.description,
         artist: values.artist,
-        state: values.state,
         coverImage: coverImageUrl,
         galleryImages: galleryImagesUrls,
         date: values.date,
@@ -523,35 +519,6 @@ const ExhibitionForm = () => {
                       )}
                     />
                   </div>
-                  
-                  <FormField
-                    control={form.control}
-                    name="state"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Status auswählen" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="current">Aktuell</SelectItem>
-                            <SelectItem value="upcoming">Kommend</SelectItem>
-                            <SelectItem value="past">Vergangen</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Bestimmt, wie die Ausstellung auf der Website dargestellt wird.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -744,14 +711,14 @@ const ExhibitionForm = () => {
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                               <FormField
                                 control={form.control}
-                                name={`program.${index}.date`}
+                                name={`program.${index}.germanDate`}
                                 render={({ field }) => (
                                   <FormItem>
                                     <FormLabel className={index !== 0 ? 'sr-only' : ''}>Datum</FormLabel>
                                     <FormControl>
                                       <Input 
-                                        type="date" 
-                                        placeholder="Datum" 
+                                        type="text" 
+                                        placeholder="Datum (z.B. 01. Januar 2023)" 
                                         {...field} 
                                       />
                                     </FormControl>
@@ -849,7 +816,7 @@ const ExhibitionForm = () => {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => appendProgram({ title: '', description: '', date: '', startTime: '', endTime: '' })}
+                      onClick={() => appendProgram({ title: '', description: '', startTime: '', endTime: '', germanDate: '' })}
                       className="mt-2"
                     >
                       <Plus className="mr-2 h-4 w-4" />

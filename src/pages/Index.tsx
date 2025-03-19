@@ -1,10 +1,11 @@
+
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import CurrentExhibition from '../components/CurrentExhibition';
 import ExhibitionCard from '../components/ExhibitionCard';
-import { useSupabase } from '@/lib/supabase';
-import { Exhibition as LocalExhibition } from '../data/exhibitions';
+import { useSupabase, getExhibitionState } from '@/lib/supabase';
+import { Exhibition } from '@/lib/supabase';
 
 const Index = () => {
   const { exhibitions, isLoading } = useSupabase();
@@ -35,46 +36,63 @@ const Index = () => {
   
   const titleText = "Alter Kiosk Berlin";
   
-  // Get current exhibition
-  const currentExhibition = exhibitions?.find(e => e.state === 'current');
-  
-  // Get newest past exhibition if no current exhibition
-  const newestPastExhibition = !currentExhibition ? 
-    exhibitions?.filter(e => e.state === 'past')
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0] : null;
-  
-  // Sort upcoming exhibitions by date
-  const upcomingExhibitions = exhibitions
-    ?.filter(e => e.state === 'upcoming')
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) || [];
-  
-  // Display exhibition will be current or the newest past
-  const displayExhibition = currentExhibition || newestPastExhibition;
-  
-  // Convert Supabase Exhibition to LocalExhibition format for CurrentExhibition component
-  const adaptExhibitionForUI = (exhibition: any): LocalExhibition => {
-    if (!exhibition) return {} as LocalExhibition;
+  // Categorize exhibitions based on dates
+  const categorizeExhibitions = () => {
+    if (!exhibitions) return { current: null, upcoming: [], past: [] };
     
-    return {
-      id: String(exhibition.id), // Convert number to string
-      title: exhibition.title || '',
-      date: exhibition.date || '',
-      germanDate: exhibition.germanDate || '',
-      description: exhibition.description || '',
-      coverImage: exhibition.coverImage || '',
-      detailImages: exhibition.galleryImages || [],
-      artist: exhibition.artist || '',
-      djs: exhibition.contributors?.filter(c => c.type === 'DJ').map(c => c.name) || [],
-      timeline: exhibition.program?.map(p => ({
-        time: p.timeframe || `${p.startTime || ''} - ${p.endTime || ''}`,
-        title: p.title || '',
-        description: p.description || '',
-        isKeyMoment: false
-      })) || [],
-      isCurrent: exhibition.state === 'current',
-      isUpcoming: exhibition.state === 'upcoming'
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    
+    const categorized = {
+      current: null as Exhibition | null,
+      upcoming: [] as Exhibition[],
+      past: [] as Exhibition[]
     };
+    
+    exhibitions.forEach(exhibition => {
+      const state = getExhibitionState(exhibition);
+      
+      if (state === 'current') {
+        // If we already have a current exhibition, compare end dates to get the one that ends later
+        if (categorized.current) {
+          const currentEndDate = categorized.current.endDate 
+            ? new Date(categorized.current.endDate) 
+            : new Date(categorized.current.date);
+            
+          const newEndDate = exhibition.endDate 
+            ? new Date(exhibition.endDate) 
+            : new Date(exhibition.date);
+            
+          if (newEndDate > currentEndDate) {
+            categorized.current = exhibition;
+          }
+        } else {
+          categorized.current = exhibition;
+        }
+      } else if (state === 'upcoming') {
+        categorized.upcoming.push(exhibition);
+      } else if (state === 'past') {
+        categorized.past.push(exhibition);
+      }
+    });
+    
+    // Sort upcoming exhibitions by start date (ascending)
+    categorized.upcoming.sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+    
+    // Sort past exhibitions by start date (descending)
+    categorized.past.sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    
+    return categorized;
   };
+  
+  const { current, upcoming, past } = categorizeExhibitions();
+  
+  // Display exhibition will be current or the newest upcoming
+  const displayExhibition = current || (upcoming.length > 0 ? upcoming[0] : null);
   
   if (isLoading) {
     return (
@@ -122,12 +140,12 @@ const Index = () => {
         </div>
       </div>
       
-      {/* Current Exhibition or Newest Past Exhibition */}
+      {/* Current Exhibition or Next Upcoming Exhibition */}
       {displayExhibition && (
         <Link to={`/ausstellung/${displayExhibition.id}`}>
           <CurrentExhibition 
-            exhibition={adaptExhibitionForUI(displayExhibition)}
-            isPast={displayExhibition.state === 'past'} 
+            exhibition={displayExhibition}
+            isPast={getExhibitionState(displayExhibition) === 'past'} 
           />
         </Link>
       )}
@@ -150,12 +168,12 @@ const Index = () => {
             </p>
           </div>
           
-          {upcomingExhibitions.length > 0 ? (
+          {upcoming.length > 0 ? (
             <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {upcomingExhibitions.map((exhibition) => (
+              {upcoming.map((exhibition) => (
                 <ExhibitionCard 
                   key={exhibition.id} 
-                  exhibition={adaptExhibitionForUI(exhibition)} 
+                  exhibition={exhibition} 
                 />
               ))}
             </div>

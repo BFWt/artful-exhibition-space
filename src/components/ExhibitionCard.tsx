@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useMotionTemplate, useMotionValue } from 'framer-motion';
 import { CalendarDays, User, Music } from 'lucide-react';
-import { Exhibition } from '../data/exhibitions';
+import { Exhibition, getExhibitionState } from '@/lib/supabase';
 
 interface ExhibitionCardProps {
   exhibition: Exhibition;
@@ -11,8 +11,18 @@ interface ExhibitionCardProps {
 }
 
 const ExhibitionCard: React.FC<ExhibitionCardProps> = ({ exhibition, featured = false }) => {
-  const { id, title, germanDate, coverImage, artist, djs, isCurrent, isUpcoming } = exhibition;
+  const { id, title, germanDate, germanEndDate, coverImage, artist, djs, contributors } = exhibition;
   const [imageLoaded, setImageLoaded] = useState(false);
+  
+  // Determine the exhibition state based on dates
+  const exhibitionState = getExhibitionState(exhibition);
+  const isCurrent = exhibitionState === 'current';
+  const isUpcoming = exhibitionState === 'upcoming';
+  
+  // Format date display
+  const formattedDate = germanEndDate && germanEndDate !== germanDate
+    ? `${germanDate} - ${germanEndDate}`
+    : germanDate;
   
   // Handle mouseMove effect for cards
   const mouseX = useMotionValue(0);
@@ -27,6 +37,9 @@ const ExhibitionCard: React.FC<ExhibitionCardProps> = ({ exhibition, featured = 
   };
   
   const maskImage = useMotionTemplate`radial-gradient(300px at ${mouseX}px ${mouseY}px, rgba(255,255,255,0.15), transparent)`;
+  
+  // Get music contributors (formerly DJs)
+  const musicContributors = contributors?.filter(c => c.icon === 'music').map(c => c.name) || [];
   
   return (
     <Link to={`/ausstellung/${id}`}>
@@ -76,7 +89,7 @@ const ExhibitionCard: React.FC<ExhibitionCardProps> = ({ exhibition, featured = 
             <div className="space-y-1.5">
               <div className="flex items-center space-x-2 text-white/90">
                 <CalendarDays className="h-3.5 w-3.5" />
-                <span className="text-xs">{germanDate}</span>
+                <span className="text-xs">{formattedDate}</span>
               </div>
               
               <h3 className="font-serif text-lg font-medium text-white">
@@ -90,10 +103,10 @@ const ExhibitionCard: React.FC<ExhibitionCardProps> = ({ exhibition, featured = 
                 </div>
               )}
               
-              {djs && djs.length > 0 && (
+              {musicContributors.length > 0 && (
                 <div className="flex items-center space-x-2 text-white/90">
                   <Music className="h-3.5 w-3.5" />
-                  <span className="text-xs">{djs.join(', ')}</span>
+                  <span className="text-xs">{musicContributors.join(', ')}</span>
                 </div>
               )}
             </div>

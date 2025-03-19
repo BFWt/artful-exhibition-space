@@ -1,3 +1,4 @@
+
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -16,22 +17,21 @@ export type ProgramEntry = {
   exhibitionId?: number;
   title: string;
   description: string;
-  date?: string; // New proper date field
-  startTime?: string; // New time field
-  endTime?: string; // New time field
+  startTime?: string;
+  endTime?: string;
+  germanDate?: string;
 };
 
 export interface Exhibition {
   id: number;
   title: string;
-  subtitle?: string; // Added subtitle
+  subtitle?: string;
   description: string;
   artist: string;
-  state: 'current' | 'upcoming' | 'past';
   date: string;
   endDate?: string;
   germanDate: string;
-  germanEndDate?: string; // Added germanEndDate
+  germanEndDate?: string;
   coverImage?: string;
   galleryImages?: string[];
   contributors?: SupportingContributor[];
@@ -39,6 +39,28 @@ export interface Exhibition {
   createdAt: string;
   updatedAt: string;
 }
+
+// Helper function to determine exhibition state
+export const getExhibitionState = (exhibition: Exhibition): 'current' | 'upcoming' | 'past' => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time to beginning of the day
+  
+  const startDate = new Date(exhibition.date);
+  startDate.setHours(0, 0, 0, 0);
+  
+  const endDate = exhibition.endDate 
+    ? new Date(exhibition.endDate) 
+    : new Date(exhibition.date);
+  endDate.setHours(23, 59, 59, 999); // Set to end of the day
+  
+  if (today >= startDate && today <= endDate) {
+    return 'current';
+  } else if (today < startDate) {
+    return 'upcoming';
+  } else {
+    return 'past';
+  }
+};
 
 type SupabaseContextType = {
   supabase: SupabaseClient;
@@ -74,7 +96,7 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { data: exhibitionsData, error: exhibitionsError } = await supabase
         .from('exhibitions')
         .select('*')
-        .order('updatedAt', { ascending: false });
+        .order('date', { ascending: true });
         
       if (exhibitionsError) throw exhibitionsError;
       
@@ -125,7 +147,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           artist: exhibition.artist,
           coverImage: exhibition.coverImage || null,
           galleryImages: exhibition.galleryImages || [],
-          state: exhibition.state,
           date: exhibition.date,
           endDate: exhibition.endDate || null,
           germanDate: exhibition.germanDate || null,
@@ -175,9 +196,9 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           exhibitionId: data.id,
           title: p.title,
           description: p.description || '',
-          date: p.date || '',
           startTime: p.startTime || '',
-          endTime: p.endTime || ''
+          endTime: p.endTime || '',
+          germanDate: p.germanDate || ''
         }));
         
         console.log('Adding program entries:', programWithExhibitionId);
@@ -287,9 +308,9 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             exhibitionId: id,
             title: p.title,
             description: p.description || '',
-            date: p.date || '',
             startTime: p.startTime || '',
-            endTime: p.endTime || ''
+            endTime: p.endTime || '',
+            germanDate: p.germanDate || ''
           }));
           
           const { error: programError } = await supabase
