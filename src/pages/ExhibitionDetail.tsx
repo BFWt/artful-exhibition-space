@@ -4,9 +4,19 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Calendar, User, Music, Clock } from 'lucide-react';
 import ExhibitionGallery from '../components/ExhibitionGallery';
-import ExhibitionTimeline from '../components/ExhibitionTimeline';
 import { useSupabase, getExhibitionState } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+
+// Helper type for grouped program events
+interface ProgramByDate {
+  date: string;
+  events: {
+    title: string;
+    startTime: string;
+    endTime?: string;
+    description?: string;
+  }[];
+}
 
 const ExhibitionDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -88,6 +98,48 @@ const ExhibitionDetail = () => {
   
   // All images for the gallery (cover image + gallery images)
   const allImages = [coverImage, ...(galleryImages || [])].filter(Boolean) as string[];
+
+  // Group program events by date and sort by time
+  const groupProgramByDate = (): ProgramByDate[] => {
+    if (!program || program.length === 0) return [];
+
+    // Create a map of date -> events
+    const dateMap: Record<string, ProgramByDate['events']> = {};
+    
+    program.forEach(event => {
+      if (!event.date) return;
+      
+      if (!dateMap[event.date]) {
+        dateMap[event.date] = [];
+      }
+      
+      dateMap[event.date].push({
+        title: event.title,
+        startTime: event.startTime || '',
+        endTime: event.endTime,
+        description: event.description
+      });
+    });
+    
+    // Convert map to array and sort each day's events by start time
+    const result = Object.entries(dateMap).map(([date, events]) => {
+      // Sort events by start time
+      const sortedEvents = [...events].sort((a, b) => {
+        if (!a.startTime) return 1;
+        if (!b.startTime) return -1;
+        return a.startTime.localeCompare(b.startTime);
+      });
+      
+      return { date, events: sortedEvents };
+    });
+    
+    // Sort days chronologically
+    result.sort((a, b) => a.date.localeCompare(b.date));
+    
+    return result;
+  };
+  
+  const programByDate = groupProgramByDate();
   
   return (
     <div className="py-10 sm:py-16">
@@ -264,34 +316,45 @@ const ExhibitionDetail = () => {
             </motion.div>
           )}
           
-          {/* Program Tab */}
-          {activeTab === 'program' && program && program.length > 0 && (
+          {/* Program Tab - Reorganized by date and time */}
+          {activeTab === 'program' && programByDate.length > 0 && (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
               className="max-w-3xl mx-auto"
             >
-              <h2 className="text-xl font-medium text-stone-900 mb-6">Programm für {formattedDate}</h2>
+              <h2 className="text-xl font-medium text-stone-900 mb-6">Programm</h2>
               
-              <div className="space-y-8">
-                {program.map((event, index) => (
-                  <div key={index} className="border-l-2 border-stone-300 pl-4 py-2">
-                    <div className="flex flex-col">
-                      <div className="flex items-center text-stone-700 font-medium">
-                        <Clock className="h-4 w-4 mr-2" />
-                        <span>{event.startTime}{event.endTime ? ` - ${event.endTime}` : ''}</span>
-                      </div>
-                      <div className="mt-2">
-                        <h3 className="text-lg font-medium">{event.title}</h3>
-                        {event.description && (
-                          <div className="mt-1 text-stone-600">
-                            {event.description.split('\n').map((line, i) => (
-                              <p key={i}>{line}</p>
-                            ))}
+              <div className="space-y-10">
+                {programByDate.map((dayGroup, dayIndex) => (
+                  <div key={dayIndex} className="space-y-4">
+                    <h3 className="text-lg font-medium text-stone-800 border-b border-stone-200 pb-2 mb-4">
+                      <Calendar className="h-4 w-4 inline mr-2" />
+                      {dayGroup.date}
+                    </h3>
+                    
+                    <div className="space-y-6 pl-2">
+                      {dayGroup.events.map((event, eventIndex) => (
+                        <div key={eventIndex} className="border-l-2 border-stone-300 pl-4 py-2">
+                          <div className="flex flex-col">
+                            <div className="flex items-center text-stone-700 font-medium">
+                              <Clock className="h-4 w-4 mr-2" />
+                              <span>{event.startTime}{event.endTime ? ` - ${event.endTime}` : ''}</span>
+                            </div>
+                            <div className="mt-2">
+                              <h3 className="text-lg font-medium">{event.title}</h3>
+                              {event.description && (
+                                <div className="mt-1 text-stone-600">
+                                  {event.description.split('\n').map((line, i) => (
+                                    <p key={i}>{line}</p>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}

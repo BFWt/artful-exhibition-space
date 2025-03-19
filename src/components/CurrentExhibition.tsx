@@ -19,7 +19,6 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
     coverImage,
     artist,
     contributors,
-    program,
     germanDate,
     germanEndDate
   } = exhibition;
@@ -140,39 +139,7 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
               <p className="text-stone-600">{description}</p>
             </div>
             
-            {program && program.length > 0 && (
-              <div className="mt-4">
-                <h3 className="font-serif text-xl font-medium text-stone-900 mb-2">
-                  Programm
-                </h3>
-                <p className="text-sm text-stone-500 mb-2">
-                  {formattedDate()}
-                </p>
-                <div className="space-y-4">
-                  {program.map((event, index) => (
-                    <div key={index} className="border-l-2 border-stone-200 pl-4 py-1">
-                      <div className="flex flex-col">
-                        <div className="flex items-center text-stone-700 font-medium">
-                          <span>{event.startTime && event.endTime 
-                            ? `${event.startTime} - ${event.endTime}` 
-                            : event.startTime || ''}</span>
-                        </div>
-                        <div className="mt-1">
-                          <h4 className="font-medium">{event.title}</h4>
-                          {event.description && (
-                            <div className="text-sm text-stone-600 mt-1">
-                              {event.description.split('\n').map((line, i) => (
-                                <p key={i}>{line}</p>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Program section removed */}
             
             {contributors && contributors.length > 0 && (
               <div className="mt-6">
