@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, User, Music, Clock } from 'lucide-react';
@@ -23,7 +23,6 @@ const ExhibitionDetail = () => {
   const { exhibitions, isLoading, error } = useSupabase();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('info');
   
   useEffect(() => {
     if (error) {
@@ -226,139 +225,116 @@ const ExhibitionDetail = () => {
           </div>
         </motion.div>
         
-        {/* Tabs */}
-        <div className="border-b border-stone-200 mb-8">
-          <div className="flex space-x-8">
-            <button 
-              className={`pb-4 text-sm font-medium ${
-                activeTab === 'info' 
-                  ? 'border-b-2 border-stone-900 text-stone-900' 
-                  : 'text-stone-500 hover:text-stone-700'
-              }`}
-              onClick={() => setActiveTab('info')}
-            >
+        {/* Content Sections - All displayed in a single vertical layout */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+          {/* Left Column: About Exhibition */}
+          <motion.div 
+            className="md:col-span-2 order-1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.3 }}
+          >
+            <h2 className="text-2xl font-serif font-medium mb-6 pb-2 border-b border-stone-200">
               Über die Ausstellung
-            </button>
+            </h2>
             
-            {allImages.length > 1 && (
-              <button 
-                className={`pb-4 text-sm font-medium ${
-                  activeTab === 'gallery' 
-                    ? 'border-b-2 border-stone-900 text-stone-900' 
-                    : 'text-stone-500 hover:text-stone-700'
-                }`}
-                onClick={() => setActiveTab('gallery')}
-              >
-                Galerie
-              </button>
-            )}
-            
-            {program && program.length > 0 && (
-              <button 
-                className={`pb-4 text-sm font-medium ${
-                  activeTab === 'program' 
-                    ? 'border-b-2 border-stone-900 text-stone-900' 
-                    : 'text-stone-500 hover:text-stone-700'
-                }`}
-                onClick={() => setActiveTab('program')}
-              >
-                Programm
-              </button>
-            )}
-          </div>
-        </div>
-        
-        {/* Tab Content */}
-        <div className="mb-16">
-          {/* Info Tab */}
-          {activeTab === 'info' && (
+            <div className="prose prose-stone prose-lg max-w-none">
+              {description.split('\n').map((paragraph, idx) => (
+                <p key={idx}>{paragraph}</p>
+              ))}
+            </div>
+          </motion.div>
+          
+          {/* Right Column: Contributors */}
+          {contributors && contributors.length > 0 && (
             <motion.div 
+              className="order-2"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-              className="max-w-3xl mx-auto"
+              transition={{ duration: 0.3, delay: 0.4 }}
             >
-              <div className="prose prose-stone prose-lg max-w-none">
-                {description.split('\n').map((paragraph, idx) => (
-                  <p key={idx}>{paragraph}</p>
+              <h2 className="text-2xl font-serif font-medium mb-6 pb-2 border-b border-stone-200">
+                Mitwirkende
+              </h2>
+              
+              <div className="flex flex-wrap gap-2">
+                {contributors.map((contributor, index) => (
+                  <div 
+                    key={index}
+                    className="bg-stone-100 rounded-full px-3 py-1 text-sm flex items-center"
+                  >
+                    {contributor.icon === 'music' && <Music className="h-3 w-3 mr-1" />}
+                    {contributor.icon === 'user' && <User className="h-3 w-3 mr-1" />}
+                    <span>{contributor.type}: {contributor.name}</span>
+                  </div>
                 ))}
               </div>
-              
-              {/* Contributors Section */}
-              {contributors && contributors.length > 0 && (
-                <div className="mt-12">
-                  <h2 className="text-xl font-medium text-stone-900 mb-4">Mitwirkende</h2>
-                  <div className="flex flex-wrap gap-2">
-                    {contributors.map((contributor, index) => (
-                      <div 
-                        key={index}
-                        className="bg-stone-100 rounded-full px-3 py-1 text-sm flex items-center"
-                      >
-                        {contributor.icon === 'music' && <Music className="h-3 w-3 mr-1" />}
-                        {contributor.icon === 'user' && <User className="h-3 w-3 mr-1" />}
-                        <span>{contributor.type}: {contributor.name}</span>
+            </motion.div>
+          )}
+        </div>
+        
+        {/* Gallery Section */}
+        {allImages.length > 1 && (
+          <motion.div 
+            className="mb-16"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.5 }}
+          >
+            <h2 className="text-2xl font-serif font-medium mb-6 pb-2 border-b border-stone-200">
+              Galerie
+            </h2>
+            
+            <ExhibitionGallery images={allImages} title={title} />
+          </motion.div>
+        )}
+        
+        {/* Program Section */}
+        {programByDate.length > 0 && (
+          <motion.div 
+            className="mb-16"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.6 }}
+          >
+            <h2 className="text-2xl font-serif font-medium mb-6 pb-2 border-b border-stone-200">
+              Programm
+            </h2>
+            
+            <div className="space-y-10 max-w-3xl">
+              {programByDate.map((dayGroup, dayIndex) => (
+                <div key={dayIndex} className="space-y-4">
+                  <h3 className="text-lg font-medium text-stone-800 border-b border-stone-200 pb-2 mb-4">
+                    {dayGroup.date}
+                  </h3>
+                  
+                  <div className="space-y-6 pl-2">
+                    {dayGroup.events.map((event, eventIndex) => (
+                      <div key={eventIndex} className="border-l-2 border-stone-300 pl-4 py-2">
+                        <div className="flex flex-col">
+                          <div className="flex items-center text-stone-700 font-medium">
+                            <Clock className="h-4 w-4 mr-2" />
+                            <span>{event.startTime}{event.endTime ? ` - ${event.endTime}` : ''}</span>
+                          </div>
+                          <div className="mt-2">
+                            <h3 className="text-lg font-medium">{event.title}</h3>
+                            {event.description && (
+                              <div className="mt-1 text-stone-600">
+                                {event.description.split('\n').map((line, i) => (
+                                  <p key={i}>{line}</p>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
-              )}
-            </motion.div>
-          )}
-          
-          {/* Gallery Tab */}
-          {activeTab === 'gallery' && allImages.length > 0 && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <ExhibitionGallery images={allImages} title={title} />
-            </motion.div>
-          )}
-          
-          {/* Program Tab - Reorganized by date and time */}
-          {activeTab === 'program' && programByDate.length > 0 && (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-              className="max-w-3xl mx-auto"
-            >
-              <div className="space-y-10">
-                {programByDate.map((dayGroup, dayIndex) => (
-                  <div key={dayIndex} className="space-y-4">
-                    <h3 className="text-lg font-medium text-stone-800 border-b border-stone-200 pb-2 mb-4">
-                      {dayGroup.date}
-                    </h3>
-                    
-                    <div className="space-y-6 pl-2">
-                      {dayGroup.events.map((event, eventIndex) => (
-                        <div key={eventIndex} className="border-l-2 border-stone-300 pl-4 py-2">
-                          <div className="flex flex-col">
-                            <div className="flex items-center text-stone-700 font-medium">
-                              <Clock className="h-4 w-4 mr-2" />
-                              <span>{event.startTime}{event.endTime ? ` - ${event.endTime}` : ''}</span>
-                            </div>
-                            <div className="mt-2">
-                              <h3 className="text-lg font-medium">{event.title}</h3>
-                              {event.description && (
-                                <div className="mt-1 text-stone-600">
-                                  {event.description.split('\n').map((line, i) => (
-                                    <p key={i}>{line}</p>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );
