@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, Calendar, User, Music, Clock } from 'lucide-react';
+import { ChevronLeft, User, Music, Clock } from 'lucide-react';
 import ExhibitionGallery from '../components/ExhibitionGallery';
 import { useSupabase, getExhibitionState } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -107,13 +107,13 @@ const ExhibitionDetail = () => {
     const dateMap: Record<string, ProgramByDate['events']> = {};
     
     program.forEach(event => {
-      if (!event.date) return;
+      if (!event.germanDate) return;
       
-      if (!dateMap[event.date]) {
-        dateMap[event.date] = [];
+      if (!dateMap[event.germanDate]) {
+        dateMap[event.germanDate] = [];
       }
       
-      dateMap[event.date].push({
+      dateMap[event.germanDate].push({
         title: event.title,
         startTime: event.startTime || '',
         endTime: event.endTime,
@@ -324,13 +324,10 @@ const ExhibitionDetail = () => {
               transition={{ duration: 0.3 }}
               className="max-w-3xl mx-auto"
             >
-              <h2 className="text-xl font-medium text-stone-900 mb-6">Programm</h2>
-              
               <div className="space-y-10">
                 {programByDate.map((dayGroup, dayIndex) => (
                   <div key={dayIndex} className="space-y-4">
                     <h3 className="text-lg font-medium text-stone-800 border-b border-stone-200 pb-2 mb-4">
-                      <Calendar className="h-4 w-4 inline mr-2" />
                       {dayGroup.date}
                     </h3>
                     

@@ -1,9 +1,7 @@
-
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
-// Define types for our database
 export type SupportingContributor = {
   id?: number;
   exhibitionId?: number;
@@ -40,10 +38,9 @@ export interface Exhibition {
   updatedAt: string;
 }
 
-// Helper function to determine exhibition state
 export const getExhibitionState = (exhibition: Exhibition): 'current' | 'upcoming' | 'past' => {
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Reset time to beginning of the day
+  today.setHours(0, 0, 0, 0);
   
   const startDate = new Date(exhibition.date);
   startDate.setHours(0, 0, 0, 0);
@@ -51,7 +48,7 @@ export const getExhibitionState = (exhibition: Exhibition): 'current' | 'upcomin
   const endDate = exhibition.endDate 
     ? new Date(exhibition.endDate) 
     : new Date(exhibition.date);
-  endDate.setHours(23, 59, 59, 999); // Set to end of the day
+  endDate.setHours(23, 59, 59, 999);
   
   if (today >= startDate && today <= endDate) {
     return 'current';
@@ -198,7 +195,8 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           description: p.description || '',
           startTime: p.startTime || '',
           endTime: p.endTime || '',
-          germanDate: p.germanDate || ''
+          germanDate: p.germanDate || '',
+          date: p.germanDate || ''
         }));
         
         console.log('Adding program entries:', programWithExhibitionId);
@@ -247,7 +245,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
       
       if (contributors) {
-        // First delete all existing contributors
         const { error: deleteError } = await supabase
           .from('contributors')
           .delete()
@@ -262,7 +259,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           throw deleteError;
         }
         
-        // Then add new contributors if there are any
         if (contributors.length > 0) {
           const contributorsWithExhibitionId = contributors.map(c => ({
             exhibitionId: id,
@@ -287,7 +283,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
       
       if (program) {
-        // First delete all existing program entries
         const { error: deleteError } = await supabase
           .from('program')
           .delete()
@@ -302,7 +297,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           throw deleteError;
         }
         
-        // Then add new program entries if there are any
         if (program.length > 0) {
           const programWithExhibitionId = program.map(p => ({
             exhibitionId: id,
@@ -310,7 +304,8 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             description: p.description || '',
             startTime: p.startTime || '',
             endTime: p.endTime || '',
-            germanDate: p.germanDate || ''
+            germanDate: p.germanDate || '',
+            date: p.germanDate || ''
           }));
           
           const { error: programError } = await supabase
@@ -339,7 +334,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const deleteExhibition = async (id: number) => {
     try {
-      // Delete all contributors
       const { error: contributorsError } = await supabase
         .from('contributors')
         .delete()
@@ -354,7 +348,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw contributorsError;
       }
       
-      // Delete all program entries
       const { error: programError } = await supabase
         .from('program')
         .delete()
@@ -369,7 +362,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         throw programError;
       }
       
-      // Delete the exhibition
       const { error } = await supabase
         .from('exhibitions')
         .delete()
@@ -399,7 +391,6 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `${path}/${fileName}`;
       
-      // Log for debugging
       console.log('Uploading file:', {
         fileName,
         filePath,
