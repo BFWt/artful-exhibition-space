@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, User, Music, Clock } from 'lucide-react';
+import { ChevronLeft, User, Music, Clock, Utensils } from 'lucide-react';
 import ExhibitionGallery from '../components/ExhibitionGallery';
 import { useSupabase, getExhibitionState } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -265,7 +265,8 @@ const ExhibitionDetail = () => {
                   >
                     {contributor.icon === 'music' && <Music className="h-3 w-3 mr-1" />}
                     {contributor.icon === 'user' && <User className="h-3 w-3 mr-1" />}
-                    <span>{contributor.type}: {contributor.name}</span>
+                    {contributor.icon === 'food' && <Utensils className="h-3 w-3 mr-1" />}
+                    <span>{contributor.name}</span>
                   </div>
                 ))}
               </div>
@@ -297,10 +298,6 @@ const ExhibitionDetail = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.6 }}
           >
-            <h2 className="text-2xl font-serif font-medium mb-6 pb-2 border-b border-stone-200">
-              Programm
-            </h2>
-            
             <div className="space-y-10 max-w-3xl">
               {programByDate.map((dayGroup, dayIndex) => (
                 <div key={dayIndex} className="space-y-4">
