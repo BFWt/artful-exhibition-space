@@ -6,6 +6,7 @@ import { TooltipProvider } from '@radix-ui/react-tooltip';
 import Layout from './components/Layout';
 import Index from './pages/Index';
 import Archive from './pages/Archive';
+import Upcoming from './pages/Upcoming';
 import Contact from './pages/Contact';
 import ExhibitionDetail from './pages/ExhibitionDetail';
 import NotFound from './pages/NotFound';
@@ -29,6 +30,7 @@ function App() {
               <Route path="/admin/*" element={<Admin />} />
               <Route path="/" element={<Layout><Outlet /></Layout>}>
                 <Route index element={<Index />} />
+                <Route path="/kommende" element={<Upcoming />} />
                 <Route path="/archiv" element={<Archive />} />
                 <Route path="/kontakt" element={<Contact />} />
                 <Route path="/impressum" element={<Impressum />} />

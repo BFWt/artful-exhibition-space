@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 
@@ -8,6 +8,7 @@ const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const { scrollY } = useScroll();
   const headerRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
   
   // Transform header opacity and backdrop blur based on scroll position
   const headerOpacity = useTransform(scrollY, [0, 50], [1, 0.9]);
@@ -40,6 +41,11 @@ const Header: React.FC = () => {
     };
   }, [isMenuOpen]);
 
+  // Close menu when route changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname]);
+
   return (
     <motion.header
       ref={headerRef}
@@ -61,19 +67,25 @@ const Header: React.FC = () => {
             <nav className="hidden md:flex md:items-center md:space-x-8">
               <Link 
                 to="/" 
-                className="hover-link text-sm font-medium text-stone-900 transition-colors hover:text-stone-600"
+                className={`hover-link text-sm font-medium transition-colors hover:text-stone-600 ${location.pathname === '/' ? 'text-stone-900' : 'text-stone-600'}`}
               >
                 Startseite
               </Link>
               <Link 
+                to="/kommende" 
+                className={`hover-link text-sm font-medium transition-colors hover:text-stone-600 ${location.pathname === '/kommende' ? 'text-stone-900' : 'text-stone-600'}`}
+              >
+                Kommende
+              </Link>
+              <Link 
                 to="/archiv" 
-                className="hover-link text-sm font-medium text-stone-900 transition-colors hover:text-stone-600"
+                className={`hover-link text-sm font-medium transition-colors hover:text-stone-600 ${location.pathname === '/archiv' ? 'text-stone-900' : 'text-stone-600'}`}
               >
                 Archiv
               </Link>
               <Link 
                 to="/kontakt" 
-                className="hover-link text-sm font-medium text-stone-900 transition-colors hover:text-stone-600"
+                className={`hover-link text-sm font-medium transition-colors hover:text-stone-600 ${location.pathname === '/kontakt' ? 'text-stone-900' : 'text-stone-600'}`}
               >
                 Kontakt
               </Link>
@@ -110,21 +122,28 @@ const Header: React.FC = () => {
         <div className="space-y-1 px-4 pb-3 pt-2 bg-white border-t border-stone-200">
           <Link
             to="/"
-            className="block py-2 text-base font-medium text-stone-900 hover:bg-stone-50 hover:text-stone-700"
+            className={`block py-2 text-base font-medium hover:bg-stone-50 hover:text-stone-700 ${location.pathname === '/' ? 'text-stone-900' : 'text-stone-600'}`}
             onClick={() => setIsMenuOpen(false)}
           >
             Startseite
           </Link>
           <Link
+            to="/kommende"
+            className={`block py-2 text-base font-medium hover:bg-stone-50 hover:text-stone-700 ${location.pathname === '/kommende' ? 'text-stone-900' : 'text-stone-600'}`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Kommende
+          </Link>
+          <Link
             to="/archiv"
-            className="block py-2 text-base font-medium text-stone-900 hover:bg-stone-50 hover:text-stone-700"
+            className={`block py-2 text-base font-medium hover:bg-stone-50 hover:text-stone-700 ${location.pathname === '/archiv' ? 'text-stone-900' : 'text-stone-600'}`}
             onClick={() => setIsMenuOpen(false)}
           >
             Archiv
           </Link>
           <Link
             to="/kontakt"
-            className="block py-2 text-base font-medium text-stone-900 hover:bg-stone-50 hover:text-stone-700"
+            className={`block py-2 text-base font-medium hover:bg-stone-50 hover:text-stone-700 ${location.pathname === '/kontakt' ? 'text-stone-900' : 'text-stone-600'}`}
             onClick={() => setIsMenuOpen(false)}
           >
             Kontakt
