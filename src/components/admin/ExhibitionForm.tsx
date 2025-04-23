@@ -106,6 +106,39 @@ const ExhibitionForm = () => {
     name: 'program'
   });
 
+  // Sortierfunktion für Programmpunkte nach Datum und Startzeit (wird unten im useEffect benutzt)
+  function sortProgramByDateAndTime(program) {
+    return [...program].sort((a, b) => {
+      // Falls kein Datum, lassen wir das Event nach hinten rutschen.
+      if (!a.germanDate) return 1;
+      if (!b.germanDate) return -1;
+      // Date zuerst vergleichen
+      const parse = (str) => {
+        if (!str) return new Date(2100,1,1); // im Zweifelsfall nach hinten
+        // "02. April 2024"
+        const [, dd, mm, yyyy] = str.match(/^(\d{1,2})\.?\s+([^\s]+)\s+(\d{4})$/) || [];
+        const months = [
+          "Januar", "Februar", "März", "April", "Mai", "Juni",
+          "Juli", "August", "September", "Oktober", "November", "Dezember"
+        ];
+        const monthIndex = months.findIndex(m => m === mm);
+        return new Date(yyyy, monthIndex !== -1 ? monthIndex : 0, dd);
+      }
+      const dateA = parse(a.germanDate);
+      const dateB = parse(b.germanDate);
+      if (dateA.getTime() !== dateB.getTime()) {
+        return dateA.getTime() - dateB.getTime();
+      }
+      // Startzeit als sekundäres Sortierkriterium
+      if (a.startTime && b.startTime) {
+        return a.startTime.localeCompare(b.startTime);
+      }
+      if (a.startTime) return -1;
+      if (b.startTime) return 1;
+      return 0;
+    });
+  }
+
   useEffect(() => {
     if (isEditing && exhibitions) {
       const exhibition = exhibitions.find(e => e.id === Number(id));
@@ -114,6 +147,9 @@ const ExhibitionForm = () => {
           name: c.name,
           icon: c.icon
         })) : [];
+
+        // HIER: Programmpunkte sortieren!
+        const sortedProgram = exhibition.program ? sortProgramByDateAndTime(exhibition.program) : [];
 
         form.reset({
           title: exhibition.title,
@@ -125,9 +161,9 @@ const ExhibitionForm = () => {
           date: exhibition.date || format(new Date(), 'yyyy-MM-dd'),
           endDate: exhibition.endDate || '',
           contributors: mappedContributors,
-          program: exhibition.program || []
+          program: sortedProgram
         });
-        
+
         setSelectedStartDate(exhibition.date ? new Date(exhibition.date) : new Date());
         if (exhibition.endDate) {
           setSelectedEndDate(new Date(exhibition.endDate));
@@ -136,10 +172,8 @@ const ExhibitionForm = () => {
           setCoverImagePreview(exhibition.coverImage);
         }
         setGalleryImagePreviews(exhibition.galleryImages || []);
-        
-        // Initialize program dates if they exist
         if (exhibition.program && exhibition.program.length > 0) {
-          const dates = exhibition.program.map(item => 
+          const dates = sortedProgram.map(item =>
             item.germanDate ? new Date(parseGermanDate(item.germanDate)) : undefined
           );
           setProgramDates(dates);

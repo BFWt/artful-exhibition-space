@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -7,7 +6,6 @@ import ExhibitionGallery from '../components/ExhibitionGallery';
 import { useSupabase, getExhibitionState } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
-// Helper type for grouped program events
 interface ProgramByDate {
   date: string;
   events: {
@@ -34,10 +32,8 @@ const ExhibitionDetail = () => {
     }
   }, [error, toast]);
   
-  // Find the exhibition by ID - convert string id to number for comparison
   const exhibition = exhibitions?.find(e => e.id === Number(id));
   
-  // If loading
   if (isLoading) {
     return (
       <div className="py-16">
@@ -48,7 +44,6 @@ const ExhibitionDetail = () => {
     );
   }
   
-  // If exhibition not found
   if (!exhibition) {
     return (
       <div className="py-16">
@@ -76,33 +71,25 @@ const ExhibitionDetail = () => {
     subtitle
   } = exhibition;
   
-  // Determine exhibition state based on dates
   const exhibitionState = getExhibitionState(exhibition);
   
-  // Format date display
   const formattedDate = germanEndDate && germanEndDate !== germanDate
     ? `${germanDate} - ${germanEndDate}`
     : germanDate;
   
-  // Handle back button
   const handleBack = () => {
-    // If it's a current or upcoming exhibition, go back to homepage
     if (exhibitionState === 'current' || exhibitionState === 'upcoming') {
       navigate('/');
     } else {
-      // If it's a past exhibition, go to archive
       navigate('/archiv');
     }
   };
   
-  // All images for the gallery (cover image + gallery images)
   const allImages = [coverImage, ...(galleryImages || [])].filter(Boolean) as string[];
 
-  // Helper function to convert German date to Date object for sorting
   const parseGermanDate = (germanDate: string): Date => {
     const parts = germanDate.split(/[\s\.]+/);
     if (parts.length >= 3) {
-      // Convert month name to month number
       const monthNames = [
         'januar', 'februar', 'märz', 'april', 'mai', 'juni',
         'juli', 'august', 'september', 'oktober', 'november', 'dezember'
@@ -117,15 +104,12 @@ const ExhibitionDetail = () => {
       }
     }
     
-    // Fallback to current date if parsing fails
     return new Date();
   };
 
-  // Group program events by date and sort by time
   const groupProgramByDate = (): ProgramByDate[] => {
     if (!program || program.length === 0) return [];
 
-    // Create a map of date -> events
     const dateMap: Record<string, ProgramByDate['events']> = {};
     
     program.forEach(event => {
@@ -143,9 +127,7 @@ const ExhibitionDetail = () => {
       });
     });
     
-    // Convert map to array
     let result = Object.entries(dateMap).map(([date, events]) => {
-      // Sort events by start time
       const sortedEvents = [...events].sort((a, b) => {
         if (!a.startTime) return 1;
         if (!b.startTime) return -1;
@@ -155,7 +137,6 @@ const ExhibitionDetail = () => {
       return { date, events: sortedEvents };
     });
     
-    // Sort days chronologically using the proper date parsing
     result.sort((a, b) => {
       const dateA = parseGermanDate(a.date);
       const dateB = parseGermanDate(b.date);
@@ -170,7 +151,6 @@ const ExhibitionDetail = () => {
   return (
     <div className="py-10 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Navigation */}
         <div className="mb-8">
           <button 
             onClick={handleBack}
@@ -181,7 +161,6 @@ const ExhibitionDetail = () => {
           </button>
         </div>
         
-        {/* Header */}
         <motion.div 
           className="text-center mb-10"
           initial={{ opacity: 0, y: 20 }}
@@ -236,7 +215,6 @@ const ExhibitionDetail = () => {
           </div>
         </motion.div>
         
-        {/* Featured Image */}
         <motion.div 
           className="mb-12"
           initial={{ opacity: 0, y: 20 }}
@@ -252,9 +230,7 @@ const ExhibitionDetail = () => {
           </div>
         </motion.div>
         
-        {/* Content Sections - All displayed in a single vertical layout */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
-          {/* Left Column: About Exhibition */}
           <motion.div 
             className="md:col-span-2 order-1"
             initial={{ opacity: 0 }}
@@ -272,7 +248,6 @@ const ExhibitionDetail = () => {
             </div>
           </motion.div>
           
-          {/* Right Column: Contributors */}
           {contributors && contributors.length > 0 && (
             <motion.div 
               className="order-2"
@@ -301,7 +276,6 @@ const ExhibitionDetail = () => {
           )}
         </div>
         
-        {/* Gallery Section */}
         {allImages.length > 1 && (
           <motion.div 
             className="mb-16"
@@ -317,7 +291,6 @@ const ExhibitionDetail = () => {
           </motion.div>
         )}
         
-        {/* Program Section */}
         {programByDate.length > 0 && (
           <motion.div 
             className="mb-16"
@@ -325,23 +298,33 @@ const ExhibitionDetail = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.6 }}
           >
-            <div className="space-y-10 max-w-3xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {programByDate.map((dayGroup, dayIndex) => (
-                <div key={dayIndex} className="space-y-4">
+                <div
+                  key={dayIndex}
+                  className="bg-white rounded-lg border-2 border-stone-200 shadow-sm p-6 space-y-4"
+                >
                   <h3 className="text-lg font-medium text-stone-800 border-b border-stone-200 pb-2 mb-4">
                     {dayGroup.date}
                   </h3>
-                  
-                  <div className="space-y-6 pl-2">
+                  <div className="space-y-6">
                     {dayGroup.events.map((event, eventIndex) => (
-                      <div key={eventIndex} className="border-l-2 border-stone-300 pl-4 py-2">
+                      <div
+                        key={eventIndex}
+                        className="border-l-2 border-stone-300 pl-4 py-2"
+                      >
                         <div className="flex flex-col">
                           <div className="flex items-center text-stone-700 font-medium">
                             <Clock className="h-4 w-4 mr-2" />
-                            <span>{event.startTime}{event.endTime ? ` - ${event.endTime}` : ''}</span>
+                            <span>
+                              {event.startTime}
+                              {event.endTime ? ` - ${event.endTime}` : ""}
+                            </span>
                           </div>
                           <div className="mt-2">
-                            <h3 className="text-lg font-medium">{event.title}</h3>
+                            <h3 className="text-lg font-medium">
+                              {event.title}
+                            </h3>
                             {event.description && (
                               <div className="mt-1 text-stone-600">
                                 {event.description.split('\n').map((line, i) => (
