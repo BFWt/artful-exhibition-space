@@ -22,7 +22,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build # Passe ggf. den Pfad zum Build-Ordner an
+          path: ./dist # Passe ggf. den Pfad zum Build-Ordner an
 
   deploy:
     needs: build
