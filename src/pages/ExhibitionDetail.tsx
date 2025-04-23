@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, User, Music, Clock, Utensils } from 'lucide-react';
+import { ChevronLeft, User, Music, Utensils, Clock } from 'lucide-react';
 import ExhibitionGallery from '../components/ExhibitionGallery';
 import { useSupabase, getExhibitionState } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
@@ -98,6 +98,29 @@ const ExhibitionDetail = () => {
   // All images for the gallery (cover image + gallery images)
   const allImages = [coverImage, ...(galleryImages || [])].filter(Boolean) as string[];
 
+  // Helper function to convert German date to Date object for sorting
+  const parseGermanDate = (germanDate: string): Date => {
+    const parts = germanDate.split(/[\s\.]+/);
+    if (parts.length >= 3) {
+      // Convert month name to month number
+      const monthNames = [
+        'januar', 'februar', 'märz', 'april', 'mai', 'juni',
+        'juli', 'august', 'september', 'oktober', 'november', 'dezember'
+      ];
+      const day = parseInt(parts[0], 10);
+      const monthName = parts[1].toLowerCase();
+      const month = monthNames.indexOf(monthName);
+      const year = parseInt(parts[2], 10);
+      
+      if (month !== -1) {
+        return new Date(year, month, day);
+      }
+    }
+    
+    // Fallback to current date if parsing fails
+    return new Date();
+  };
+
   // Group program events by date and sort by time
   const groupProgramByDate = (): ProgramByDate[] => {
     if (!program || program.length === 0) return [];
@@ -120,8 +143,8 @@ const ExhibitionDetail = () => {
       });
     });
     
-    // Convert map to array and sort each day's events by start time
-    const result = Object.entries(dateMap).map(([date, events]) => {
+    // Convert map to array
+    let result = Object.entries(dateMap).map(([date, events]) => {
       // Sort events by start time
       const sortedEvents = [...events].sort((a, b) => {
         if (!a.startTime) return 1;
@@ -132,8 +155,12 @@ const ExhibitionDetail = () => {
       return { date, events: sortedEvents };
     });
     
-    // Sort days chronologically
-    result.sort((a, b) => a.date.localeCompare(b.date));
+    // Sort days chronologically using the proper date parsing
+    result.sort((a, b) => {
+      const dateA = parseGermanDate(a.date);
+      const dateB = parseGermanDate(b.date);
+      return dateA.getTime() - dateB.getTime();
+    });
     
     return result;
   };

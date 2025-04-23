@@ -92,16 +92,16 @@ const ExhibitionCard: React.FC<ExhibitionCardProps> = ({ exhibition, featured = 
                 <span className="text-xs">{formattedDate}</span>
               </div>
               
+              {artist && (
+                <div className="flex items-center space-x-2 text-white/90 mb-1">
+                  <User className="h-3.5 w-3.5" />
+                  <span className="text-sm font-medium">{artist}</span>
+                </div>
+              )}
+
               <h3 className="font-serif text-lg font-medium text-white">
                 {title}
               </h3>
-              
-              {artist && (
-                <div className="flex items-center space-x-2 text-white/90">
-                  <User className="h-3.5 w-3.5" />
-                  <span className="text-xs">{artist}</span>
-                </div>
-              )}
               
               {musicContributors.length > 0 && (
                 <div className="flex items-center space-x-2 text-white/90">

@@ -57,6 +57,18 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
              exhibitionState === 'current' ? 'Aktuelle Ausstellung' :
              'Nächste Ausstellung'}
           </motion.span>
+
+          {artist && (
+            <motion.p 
+              className="mt-2 text-3xl font-medium tracking-tight text-stone-900 sm:text-4xl"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              {artist}
+            </motion.p>
+          )}
+          
           <motion.h2 
             className="mt-2 font-serif text-3xl font-medium tracking-tight text-stone-900 sm:text-4xl"
             initial={{ opacity: 0 }}
@@ -136,7 +148,11 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
               <h3 className="font-serif text-xl font-medium text-stone-900 mb-2">
                 Über die Ausstellung
               </h3>
-              <p className="text-stone-600">{description}</p>
+              <div className="text-stone-600">
+                {description.split('\n').map((paragraph, idx) => (
+                  <p key={idx} className="mb-2">{paragraph}</p>
+                ))}
+              </div>
             </div>
             
             {/* Program section removed */}
@@ -155,7 +171,6 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
                       {contributor.icon === 'music' && <Music className="h-3 w-3 mr-1" />}
                       {contributor.icon === 'user' && <User className="h-3 w-3 mr-1" />}
                       {contributor.icon === 'coffee' && <Coffee className="h-3 w-3 mr-1" />}
-                      <span className="mr-1 font-medium">{contributor.type}:</span>
                       <span>{contributor.name}</span>
                     </div>
                   ))}
