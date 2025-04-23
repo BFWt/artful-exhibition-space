@@ -51,7 +51,6 @@ const Index = () => {
     
     exhibitions.forEach(exhibition => {
       const state = getExhibitionState(exhibition);
-      
       if (state === 'current') {
         categorized.current.push(exhibition);
       } else if (state === 'upcoming') {
@@ -132,8 +131,8 @@ const Index = () => {
         </div>
       </div>
       
-      {/* Current Exhibition Section Header */}
-      {displayExhibitions.length > 0 && (
+      {/* CURRENT/NEXT EXHIBITION SECTION HEADER ENTFERNT */}
+      {/* {displayExhibitions.length > 0 && (
         <div className="py-8">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <motion.div 
@@ -149,10 +148,10 @@ const Index = () => {
             </motion.div>
           </div>
         </div>
-      )}
+      )} */}
       
-      {/* Current or Next Upcoming Exhibitions */}
-      {displayExhibitions.map((exhibition, index) => (
+      {/* Current or Next Upcoming Exhibitions (ohne Label, Artist wird im Component angepasst) */}
+      {displayExhibitions.map((exhibition) => (
         <Link key={exhibition.id} to={`/ausstellung/${exhibition.id}`}>
           <CurrentExhibition 
             exhibition={exhibition}

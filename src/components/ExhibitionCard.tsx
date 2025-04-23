@@ -84,31 +84,33 @@ const ExhibitionCard: React.FC<ExhibitionCardProps> = ({ exhibition, featured = 
             onLoad={() => setImageLoaded(true)}
           />
           
-          {/* Content overlay */}
-          <div className="absolute inset-0 flex flex-col justify-end p-4 z-20">
-            <div className="space-y-1.5">
-              <div className="flex items-center space-x-2 text-white/90">
-                <CalendarDays className="h-3.5 w-3.5" />
-                <span className="text-xs">{formattedDate}</span>
-              </div>
-              
-              {artist && (
-                <div className="flex items-center space-x-2 text-white/90 mb-1">
-                  <User className="h-3.5 w-3.5" />
-                  <span className="text-sm font-medium">{artist}</span>
-                </div>
-              )}
-
-              <h3 className="font-serif text-lg font-medium text-white">
-                {title}
-              </h3>
-              
-              {musicContributors.length > 0 && (
+          {/* Content overlay mit dunklem halbtransparentem Hintergrund */}
+          <div className="absolute inset-x-0 bottom-0 z-20 p-4">
+            <div className="bg-black/65 rounded-lg px-3 py-2 backdrop-blur-sm">
+              <div className="space-y-1.5">
                 <div className="flex items-center space-x-2 text-white/90">
-                  <Music className="h-3.5 w-3.5" />
-                  <span className="text-xs">{musicContributors.join(', ')}</span>
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  <span className="text-xs">{formattedDate}</span>
                 </div>
-              )}
+                
+                {artist && (
+                  <div className="flex items-center space-x-2 text-white/90 mb-1">
+                    <User className="h-3.5 w-3.5" />
+                    <span className="text-sm font-medium">{artist}</span>
+                  </div>
+                )}
+
+                <h3 className="font-serif text-lg font-medium text-white">
+                  {title}
+                </h3>
+                
+                {musicContributors.length > 0 && (
+                  <div className="flex items-center space-x-2 text-white/90">
+                    <Music className="h-3.5 w-3.5" />
+                    <span className="text-xs">{musicContributors.join(', ')}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

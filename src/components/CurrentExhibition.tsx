@@ -54,13 +54,13 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
             transition={{ duration: 0.5, delay: 0.3 }}
           >
             {exhibitionState === 'past' ? 'Vergangene Ausstellung' : 
-             exhibitionState === 'current' ? 'Aktuelle Ausstellung' :
-             'Nächste Ausstellung'}
+             exhibitionState === 'current' ? 'Aktuell' :
+             'Kommend'}
           </motion.span>
 
           {artist && (
             <motion.p 
-              className="mt-2 text-3xl font-medium tracking-tight text-stone-900 sm:text-4xl"
+              className="mt-2 font-serif text-3xl sm:text-4xl font-medium tracking-tight text-stone-900"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.4 }}
@@ -70,7 +70,7 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
           )}
           
           <motion.h2 
-            className="mt-2 font-serif text-3xl font-medium tracking-tight text-stone-900 sm:text-4xl"
+            className="mt-2 font-serif text-3xl sm:text-4xl font-medium tracking-tight text-stone-900"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
@@ -97,6 +97,7 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
           )}
         </div>
         
+        {/* IMAGE NUR NOCH OHNE OVERLAY-TEXT */}
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
           <motion.div 
             className="relative aspect-[4/3] overflow-hidden rounded-lg shadow-md"
@@ -110,32 +111,6 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
               className={`h-full w-full object-cover object-center transition-all duration-700 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
               onLoad={() => setImageLoaded(true)}
             />
-            
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-              <div className="flex flex-col text-white">
-                <div className="flex items-center space-x-2 text-white/90 mb-2">
-                  <CalendarDays className="h-4 w-4" />
-                  <span>{formattedDate()}</span>
-                </div>
-                {artist && (
-                  <div className="flex items-center space-x-2 text-white/90">
-                    <User className="h-4 w-4" />
-                    <span>{artist}</span>
-                  </div>
-                )}
-                {contributors && contributors.length > 0 && contributors.some(c => c.icon === 'music') && (
-                  <div className="flex items-center space-x-2 text-white/90 mt-1">
-                    <Music className="h-4 w-4" />
-                    <span>
-                      {contributors
-                        .filter(c => c.icon === 'music')
-                        .map(c => c.name)
-                        .join(', ')}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
           </motion.div>
           
           <motion.div 
