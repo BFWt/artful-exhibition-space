@@ -33,14 +33,14 @@ const Contact = () => {
                 href="tel:+4930123456789" 
                 className="text-stone-700 hover:text-stone-900 hover-link"
               >
-                +49 30 123 456 789
+                +49 179 1095619
               </a>
             </div>
             
             <div className="flex items-center space-x-3">
               <MapPin className="h-5 w-5 text-stone-400" />
               <p className="text-stone-700">
-                Musterstraße 42, 10123 Berlin
+              Grunewaldstr. 27, 12165 Berlin
               </p>
             </div>
             

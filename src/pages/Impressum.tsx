@@ -17,35 +17,15 @@ const Impressum = () => {
         
         <h2>Angaben gemäß § 5 TMG</h2>
         <p>
-          Vorname Nachname<br />
+          Ronald Korsch<br />
           Alter Kiosk Berlin<br />
-          Musterstraße 42<br />
-          10123 Berlin
+          Grunewaldstr. 27<br />
+          12165 Berlin
         </p>
         
         <h2>Kontakt</h2>
         <p>
-          Telefon: +49 30 123 456 789<br />
-          E-Mail: info@alterkiosk.berlin
-        </p>
-        
-        <h2>Umsatzsteuer-ID</h2>
-        <p>
-          Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz:<br />
-          DE123456789
-        </p>
-        
-        <h2>Redaktionell verantwortlich</h2>
-        <p>
-          Vorname Nachname<br />
-          Musterstraße 42<br />
-          10123 Berlin
-        </p>
-        
-        <h2>Verbraucherstreitbeilegung/Universalschlichtungsstelle</h2>
-        <p>
-          Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer
-          Verbraucherschlichtungsstelle teilzunehmen.
+          Telefon: +49 179 1095619<br />
         </p>
       </motion.div>
     </div>
