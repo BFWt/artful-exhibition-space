@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Header from './Header';
@@ -32,6 +31,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="mb-4 md:mb-0">
               <p className="text-sm text-stone-500">
                 &copy; {new Date().getFullYear()} Alter Kiosk Berlin
+              </p>
+            </div>
+            <div className="mb-4 md:mb-0">
+              <p className="text-sm text-stone-400 italic">
+                Built with Lovable AI Prompting Art
               </p>
             </div>
             <div className="flex items-center space-x-6">
