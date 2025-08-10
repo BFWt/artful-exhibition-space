@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { 
   X, 
@@ -11,7 +11,6 @@ import {
   Minimize2
 } from 'lucide-react';
 import {
-  type CarouselApi,
   Carousel,
   CarouselContent,
   CarouselItem,
@@ -28,12 +27,6 @@ const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, title = "
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
-  const [api, setApi] = useState<CarouselApi | null>(null);
-  
-  useEffect(() => {
-    if (!api || selectedImageIndex === null) return;
-    api.scrollTo(selectedImageIndex);
-  }, [api, selectedImageIndex]);
   
   const handleImageLoad = (src: string) => {
     setLoadedImages(prev => ({ ...prev, [src]: true }));
@@ -122,6 +115,10 @@ const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, title = "
         <DialogContent 
           className={`p-0 border-none max-w-6xl bg-transparent shadow-none ${fullscreen ? 'left-0 top-0 translate-x-0 translate-y-0 w-screen h-screen max-w-none m-0 rounded-none' : ''}`}
         >
+          <DialogTitle className="sr-only">{title} – Galerie</DialogTitle>
+          <DialogDescription className="sr-only">
+            {selectedImageIndex !== null ? `Bild ${selectedImageIndex + 1} von ${images.length}` : `Bild 1 von ${images.length}`}
+          </DialogDescription>
           <div className={`bg-black bg-opacity-95 overflow-hidden ${fullscreen ? 'rounded-none h-full flex flex-col' : 'rounded-lg'}`}>
             <div className="flex items-center justify-between p-2 text-white">
               <div>{selectedImageIndex !== null ? `${selectedImageIndex + 1} / ${images.length}` : ''}</div>
@@ -130,6 +127,7 @@ const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, title = "
                   variant="ghost" 
                   size="sm" 
                   onClick={toggleFullscreen}
+                  aria-label={fullscreen ? 'Vollbild beenden' : 'Vollbild öffnen'}
                   className="text-white hover:text-white hover:bg-white/20"
                 >
                   {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
@@ -138,6 +136,7 @@ const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, title = "
                   variant="ghost" 
                   size="sm" 
                   onClick={closeModal}
+                  aria-label="Schließen"
                   className="text-white hover:text-white hover:bg-white/20"
                 >
                   <X className="h-4 w-4" />
@@ -146,7 +145,7 @@ const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, title = "
             </div>
             <div className={`${fullscreen ? 'flex-1' : ''}`}>
               {selectedImageIndex !== null && (
-                <Carousel className="w-full" setApi={setApi}>
+                <Carousel className="w-full" opts={{ startIndex: selectedImageIndex ?? 0 }} key={`carousel-${selectedImageIndex}`}>
                   <CarouselContent className="h-full">
                     {images.map((image, index) => (
                       <CarouselItem key={index} className="flex items-center justify-center">
