@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 
 interface ExhibitionGalleryProps {
@@ -33,6 +34,24 @@ const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, title = "
   };
   
   const isImageLoaded = (src: string) => loadedImages[src];
+
+  // Carousel API to sync index on slide change
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+
+  useEffect(() => {
+    if (!carouselApi) return;
+    const handleSelect = () => {
+      const snap = carouselApi.selectedScrollSnap();
+      setSelectedImageIndex(snap);
+    };
+    handleSelect();
+    carouselApi.on('select', handleSelect);
+    carouselApi.on('reInit', handleSelect);
+    return () => {
+      carouselApi.off('select', handleSelect);
+      carouselApi.off('reInit', handleSelect);
+    };
+  }, [carouselApi]);
   
   const openModal = (index: number) => {
     setSelectedImageIndex(index);
@@ -145,7 +164,7 @@ const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, title = "
             </div>
             <div className={`${fullscreen ? 'flex-1' : ''}`}>
               {selectedImageIndex !== null && (
-                <Carousel className="w-full" opts={{ startIndex: selectedImageIndex ?? 0 }} key={`carousel-${selectedImageIndex}`}>
+                <Carousel className="w-full" opts={{ startIndex: selectedImageIndex ?? 0 }} setApi={setCarouselApi} key={`carousel-${selectedImageIndex}`}>
                   <CarouselContent className="h-full">
                     {images.map((image, index) => (
                       <CarouselItem key={index} className="flex items-center justify-center">
