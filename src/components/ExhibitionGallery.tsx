@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
   Minimize2
 } from 'lucide-react';
 import {
+  type CarouselApi,
   Carousel,
   CarouselContent,
   CarouselItem,
@@ -27,6 +28,12 @@ const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, title = "
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [fullscreen, setFullscreen] = useState(false);
   const [loadedImages, setLoadedImages] = useState<Record<string, boolean>>({});
+  const [api, setApi] = useState<CarouselApi | null>(null);
+  
+  useEffect(() => {
+    if (!api || selectedImageIndex === null) return;
+    api.scrollTo(selectedImageIndex);
+  }, [api, selectedImageIndex]);
   
   const handleImageLoad = (src: string) => {
     setLoadedImages(prev => ({ ...prev, [src]: true }));
@@ -113,9 +120,9 @@ const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, title = "
       {/* Image Carousel Modal */}
       <Dialog open={selectedImageIndex !== null} onOpenChange={closeModal}>
         <DialogContent 
-          className={`p-0 border-none max-w-6xl bg-transparent shadow-none ${fullscreen ? 'fixed inset-0 w-full h-full m-0 max-h-none' : ''}`}
+          className={`p-0 border-none max-w-6xl bg-transparent shadow-none ${fullscreen ? 'left-0 top-0 translate-x-0 translate-y-0 w-screen h-screen max-w-none m-0 rounded-none' : ''}`}
         >
-          <div className={`bg-black bg-opacity-95 rounded-lg overflow-hidden ${fullscreen ? 'h-full flex flex-col' : ''}`}>
+          <div className={`bg-black bg-opacity-95 overflow-hidden ${fullscreen ? 'rounded-none h-full flex flex-col' : 'rounded-lg'}`}>
             <div className="flex items-center justify-between p-2 text-white">
               <div>{selectedImageIndex !== null ? `${selectedImageIndex + 1} / ${images.length}` : ''}</div>
               <div className="flex space-x-1">
@@ -139,7 +146,7 @@ const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, title = "
             </div>
             <div className={`${fullscreen ? 'flex-1' : ''}`}>
               {selectedImageIndex !== null && (
-                <Carousel className="w-full">
+                <Carousel className="w-full" setApi={setApi}>
                   <CarouselContent className="h-full">
                     {images.map((image, index) => (
                       <CarouselItem key={index} className="flex items-center justify-center">
