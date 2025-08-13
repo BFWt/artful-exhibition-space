@@ -79,13 +79,12 @@ const ExhibitionDetail = () => {
     }
   };
 
-  const allItems: { url: string; caption?: string }[] = [];
-  if (coverImage) allItems.push({ url: coverImage });
-  if (exhibition.galleryItems && exhibition.galleryItems.length > 0) {
-    allItems.push(...exhibition.galleryItems);
-  } else if (galleryImages && galleryImages.length > 0) {
-    allItems.push(...galleryImages.map((url) => ({ url })));
-  }
+  const galleryItemsOnly: { url: string; caption?: string }[] =
+    exhibition.galleryItems && exhibition.galleryItems.length > 0
+      ? exhibition.galleryItems
+      : (galleryImages && galleryImages.length > 0
+          ? galleryImages.map((url) => ({ url }))
+          : []);
 
   const parseGermanDate = (germanDate: string): Date => {
     const parts = germanDate.split(/[\s\.]+/);
@@ -180,7 +179,7 @@ const ExhibitionDetail = () => {
             <ExhibitionDetailContributors contributors={contributors} />
           )}
         </div>
-        {allItems.length > 1 && (
+        {galleryItemsOnly.length > 0 && (
           <motion.div
             className="mb-16"
             initial={{ opacity: 0 }}
@@ -190,7 +189,7 @@ const ExhibitionDetail = () => {
             <h2 className="text-2xl font-serif font-medium mb-6 pb-2 border-b border-stone-200">
               Galerie
             </h2>
-            <ExhibitionGallery items={allItems} title={title} />
+            <ExhibitionGallery items={galleryItemsOnly} title={title} />
           </motion.div>
         )}
         {programByDate.length > 0 && (
