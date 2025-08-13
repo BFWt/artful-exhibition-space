@@ -75,6 +75,7 @@ const ExhibitionForm = () => {
   const [coverImagePreview, setCoverImagePreview] = useState<string>('');
   const [galleryImageFiles, setGalleryImageFiles] = useState<File[]>([]);
   const [galleryImagePreviews, setGalleryImagePreviews] = useState<string[]>([]);
+  const [galleryCaptions, setGalleryCaptions] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [selectedStartDate, setSelectedStartDate] = useState<Date | undefined>(new Date());
   const [selectedEndDate, setSelectedEndDate] = useState<Date | undefined>(undefined);
@@ -157,7 +158,9 @@ const ExhibitionForm = () => {
           description: exhibition.description,
           artist: exhibition.artist,
           coverImage: exhibition.coverImage || '',
-          galleryImages: exhibition.galleryImages || [],
+          galleryImages: (exhibition.galleryItems && exhibition.galleryItems.length > 0)
+            ? exhibition.galleryItems.map(i => i.url)
+            : (exhibition.galleryImages || []),
           date: exhibition.date || format(new Date(), 'yyyy-MM-dd'),
           endDate: exhibition.endDate || '',
           contributors: mappedContributors,
@@ -171,7 +174,15 @@ const ExhibitionForm = () => {
         if (exhibition.coverImage) {
           setCoverImagePreview(exhibition.coverImage);
         }
-        setGalleryImagePreviews(exhibition.galleryImages || []);
+        const galleryUrls = (exhibition.galleryItems && exhibition.galleryItems.length > 0)
+          ? exhibition.galleryItems.map(i => i.url)
+          : (exhibition.galleryImages || []);
+        setGalleryImagePreviews(galleryUrls);
+        setGalleryCaptions(
+          (exhibition.galleryItems && exhibition.galleryItems.length > 0)
+            ? exhibition.galleryItems.map(i => i.caption || '')
+            : new Array(galleryUrls.length).fill('')
+        );
         if (exhibition.program && exhibition.program.length > 0) {
           const dates = sortedProgram.map(item =>
             item.germanDate ? new Date(parseGermanDate(item.germanDate)) : undefined
@@ -237,6 +248,11 @@ const ExhibitionForm = () => {
       const germanDate = format(new Date(values.date), 'dd. MMMM yyyy', { locale: de });
       const germanEndDate = values.endDate ? format(new Date(values.endDate), 'dd. MMMM yyyy', { locale: de }) : undefined;
       
+      const galleryItems = galleryImagesUrls.map((url, i) => ({
+        url,
+        caption: (galleryCaptions[i] || '').trim() || undefined,
+      }));
+      
       const exhibitionData = {
         title: values.title,
         subtitle: values.subtitle || '',
@@ -244,6 +260,7 @@ const ExhibitionForm = () => {
         artist: values.artist,
         coverImage: coverImageUrl,
         galleryImages: galleryImagesUrls,
+        galleryItems,
         date: values.date,
         endDate: values.endDate || null,
         germanDate: germanDate,
@@ -338,11 +355,13 @@ const ExhibitionForm = () => {
       
       const newPreviews = filesArray.map(file => URL.createObjectURL(file));
       setGalleryImagePreviews(prev => [...prev, ...newPreviews]);
+      setGalleryCaptions(prev => [...prev, ...new Array(filesArray.length).fill('')]);
     }
   };
 
   const removeGalleryImage = (index: number) => {
     setGalleryImagePreviews(prev => prev.filter((_, i) => i !== index));
+    setGalleryCaptions(prev => prev.filter((_, i) => i !== index));
     
     if (index >= (form.getValues().galleryImages?.length || 0)) {
       const newFileIndex = index - (form.getValues().galleryImages?.length || 0);
@@ -649,6 +668,17 @@ const ExhibitionForm = () => {
                               >
                                 <X className="h-4 w-4" />
                               </button>
+                              <div className="mt-2">
+                                <Input
+                                  placeholder="Bildtext (optional)"
+                                  value={galleryCaptions[index] || ''}
+                                  onChange={(e) => setGalleryCaptions(prev => {
+                                    const next = [...prev];
+                                    next[index] = e.target.value;
+                                    return next;
+                                  })}
+                                />
+                              </div>
                             </div>
                           ))}
                         </div>

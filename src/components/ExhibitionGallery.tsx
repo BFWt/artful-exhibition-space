@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/carousel";
 
 interface ExhibitionGalleryProps {
-  images: string[];
+  images?: string[];
+  items?: { url: string; caption?: string }[];
   title?: string;
 }
 

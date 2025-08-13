@@ -32,6 +32,7 @@ export interface Exhibition {
   germanEndDate?: string;
   coverImage?: string;
   galleryImages?: string[];
+  galleryItems?: { url: string; caption?: string }[];
   contributors?: SupportingContributor[];
   program?: ProgramEntry[];
   createdAt: string;
@@ -144,6 +145,7 @@ export const SupabaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           artist: exhibition.artist,
           coverImage: exhibition.coverImage || null,
           galleryImages: exhibition.galleryImages || [],
+          galleryItems: exhibition.galleryItems || [],
           date: exhibition.date,
           endDate: exhibition.endDate || null,
           germanDate: exhibition.germanDate || null,
