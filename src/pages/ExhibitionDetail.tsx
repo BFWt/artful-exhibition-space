@@ -79,7 +79,13 @@ const ExhibitionDetail = () => {
     }
   };
 
-  const allImages = [coverImage, ...(galleryImages || [])].filter(Boolean) as string[];
+  const allItems: { url: string; caption?: string }[] = [];
+  if (coverImage) allItems.push({ url: coverImage });
+  if (exhibition.galleryItems && exhibition.galleryItems.length > 0) {
+    allItems.push(...exhibition.galleryItems);
+  } else if (galleryImages && galleryImages.length > 0) {
+    allItems.push(...galleryImages.map((url) => ({ url })));
+  }
 
   const parseGermanDate = (germanDate: string): Date => {
     const parts = germanDate.split(/[\s\.]+/);
@@ -174,7 +180,7 @@ const ExhibitionDetail = () => {
             <ExhibitionDetailContributors contributors={contributors} />
           )}
         </div>
-        {allImages.length > 1 && (
+        {allItems.length > 1 && (
           <motion.div
             className="mb-16"
             initial={{ opacity: 0 }}
@@ -184,7 +190,7 @@ const ExhibitionDetail = () => {
             <h2 className="text-2xl font-serif font-medium mb-6 pb-2 border-b border-stone-200">
               Galerie
             </h2>
-            <ExhibitionGallery images={allImages} title={title} />
+            <ExhibitionGallery items={allItems} title={title} />
           </motion.div>
         )}
         {programByDate.length > 0 && (
