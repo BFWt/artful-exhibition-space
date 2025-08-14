@@ -76,6 +76,7 @@ const ExhibitionForm = () => {
   const [galleryImageFiles, setGalleryImageFiles] = useState<File[]>([]);
   const [galleryImagePreviews, setGalleryImagePreviews] = useState<string[]>([]);
   const [galleryCaptions, setGalleryCaptions] = useState<string[]>([]);
+  const [galleryItems, setGalleryItems] = useState<{ url: string; caption?: string; description?: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [selectedStartDate, setSelectedStartDate] = useState<Date | undefined>(new Date());
   const [selectedEndDate, setSelectedEndDate] = useState<Date | undefined>(undefined);
@@ -178,6 +179,11 @@ const ExhibitionForm = () => {
           ? exhibition.galleryItems.map(i => i.url)
           : (exhibition.galleryImages || []);
         setGalleryImagePreviews(galleryUrls);
+        setGalleryItems(
+          (exhibition.galleryItems && exhibition.galleryItems.length > 0)
+            ? exhibition.galleryItems
+            : galleryUrls.map(url => ({ url, caption: '', description: '' }))
+        );
         setGalleryCaptions(
           (exhibition.galleryItems && exhibition.galleryItems.length > 0)
             ? exhibition.galleryItems.map(i => i.caption || '')
@@ -248,9 +254,10 @@ const ExhibitionForm = () => {
       const germanDate = format(new Date(values.date), 'dd. MMMM yyyy', { locale: de });
       const germanEndDate = values.endDate ? format(new Date(values.endDate), 'dd. MMMM yyyy', { locale: de }) : undefined;
       
-      const galleryItems = galleryImagesUrls.map((url, i) => ({
+      const galleryItemsForSave = galleryImagesUrls.map((url, i) => ({
         url,
-        caption: (galleryCaptions[i] || '').trim() || undefined,
+        caption: (galleryItems[i]?.caption || '').trim() || undefined,
+        description: (galleryItems[i]?.description || '').trim() || undefined,
       }));
       
       const exhibitionData = {
@@ -260,7 +267,7 @@ const ExhibitionForm = () => {
         artist: values.artist,
         coverImage: coverImageUrl,
         galleryImages: galleryImagesUrls,
-        galleryItems,
+        galleryItems: galleryItemsForSave,
         date: values.date,
         endDate: values.endDate || null,
         germanDate: germanDate,
@@ -355,12 +362,14 @@ const ExhibitionForm = () => {
       
       const newPreviews = filesArray.map(file => URL.createObjectURL(file));
       setGalleryImagePreviews(prev => [...prev, ...newPreviews]);
+      setGalleryItems(prev => [...prev, ...filesArray.map(file => ({ url: URL.createObjectURL(file), caption: '', description: '' }))]);
       setGalleryCaptions(prev => [...prev, ...new Array(filesArray.length).fill('')]);
     }
   };
 
   const removeGalleryImage = (index: number) => {
     setGalleryImagePreviews(prev => prev.filter((_, i) => i !== index));
+    setGalleryItems(prev => prev.filter((_, i) => i !== index));
     setGalleryCaptions(prev => prev.filter((_, i) => i !== index));
     
     if (index >= (form.getValues().galleryImages?.length || 0)) {
@@ -668,17 +677,33 @@ const ExhibitionForm = () => {
                               >
                                 <X className="h-4 w-4" />
                               </button>
-                              <div className="mt-2">
-                                <Input
-                                  placeholder="Bildtext (optional)"
-                                  value={galleryCaptions[index] || ''}
-                                  onChange={(e) => setGalleryCaptions(prev => {
-                                    const next = [...prev];
-                                    next[index] = e.target.value;
-                                    return next;
-                                  })}
-                                />
-                              </div>
+                               <div className="mt-2 space-y-2">
+                                 <Input
+                                   placeholder="Bildtext (optional)"
+                                   value={galleryItems[index]?.caption || ''}
+                                   onChange={(e) => {
+                                     const newItems = [...galleryItems];
+                                     if (!newItems[index]) {
+                                       newItems[index] = { url: galleryImagePreviews[index], caption: '', description: '' };
+                                     }
+                                     newItems[index] = { ...newItems[index], caption: e.target.value };
+                                       setGalleryItems(newItems);
+                                   }}
+                                 />
+                                 <textarea
+                                   placeholder="Beschreibung nur für Galerie-Ansicht (optional)"
+                                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-vertical min-h-[60px]"
+                                   value={galleryItems[index]?.description || ''}
+                                   onChange={(e) => {
+                                     const newItems = [...galleryItems];
+                                     if (!newItems[index]) {
+                                       newItems[index] = { url: galleryImagePreviews[index], caption: '', description: '' };
+                                     }
+                                     newItems[index] = { ...newItems[index], description: e.target.value };
+                                       setGalleryItems(newItems);
+                                   }}
+                                 />
+                               </div>
                             </div>
                           ))}
                         </div>

@@ -21,7 +21,7 @@ import {
 
 interface ExhibitionGalleryProps {
   images?: string[];
-  items?: { url: string; caption?: string }[];
+  items?: { url: string; caption?: string; description?: string }[];
   title?: string;
 }
 
@@ -91,7 +91,7 @@ const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, items, ti
   };
   
   // Build gallery items from props (backward compatible)
-  const galleryItems: { url: string; caption?: string }[] = (items && items.length > 0) ? items : (images || []).map((url) => ({ url, caption: undefined }));
+  const galleryItems: { url: string; caption?: string; description?: string }[] = (items && items.length > 0) ? items : (images || []).map((url) => ({ url, caption: undefined, description: undefined }));
   
   // Calculate grid columns based on item count
   const gridCols = galleryItems.length === 1 ? 'grid-cols-1' : 
@@ -185,13 +185,20 @@ const ExhibitionGallery: React.FC<ExhibitionGalleryProps> = ({ images, items, ti
                             alt={`${title} - Bild ${index + 1}${gi.caption ? ' – ' + gi.caption : ''}`}
                             className="max-h-full max-w-full object-contain"
                           />
-                          {gi.caption && (
-                            <div className="absolute inset-x-0 bottom-0 p-4">
-                              <div className="bg-black/65 rounded-md px-3 py-2 text-white text-sm text-center max-w-[90%] mx-auto">
-                                {gi.caption}
-                              </div>
-                            </div>
-                          )}
+                           {(gi.caption || gi.description) && (
+                             <div className="absolute inset-x-0 bottom-0 p-4">
+                               <div className="bg-black/65 rounded-md px-3 py-2 text-white text-sm text-center max-w-[90%] mx-auto">
+                                 {gi.caption && (
+                                   <div className="mb-1">{gi.caption}</div>
+                                 )}
+                                 {gi.description && (
+                                   <div className="text-xs text-white/80 whitespace-pre-line">
+                                     {gi.description}
+                                   </div>
+                                 )}
+                               </div>
+                             </div>
+                           )}
                         </div>
                       </CarouselItem>
                     ))}

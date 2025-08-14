@@ -32,7 +32,7 @@ export interface Exhibition {
   germanEndDate?: string;
   coverImage?: string;
   galleryImages?: string[];
-  galleryItems?: { url: string; caption?: string }[];
+  galleryItems?: { url: string; caption?: string; description?: string }[];
   contributors?: SupportingContributor[];
   program?: ProgramEntry[];
   createdAt: string;
