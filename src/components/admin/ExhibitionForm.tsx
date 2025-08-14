@@ -76,7 +76,7 @@ const ExhibitionForm = () => {
   const [galleryImageFiles, setGalleryImageFiles] = useState<File[]>([]);
   const [galleryImagePreviews, setGalleryImagePreviews] = useState<string[]>([]);
   const [galleryCaptions, setGalleryCaptions] = useState<string[]>([]);
-  const [galleryItems, setGalleryItems] = useState<{ url: string; caption?: string; description?: string }[]>([]);
+  const [galleryItems, setGalleryItems] = useState<{ url: string | File; caption?: string; description?: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [selectedStartDate, setSelectedStartDate] = useState<Date | undefined>(new Date());
   const [selectedEndDate, setSelectedEndDate] = useState<Date | undefined>(undefined);
@@ -221,19 +221,38 @@ const ExhibitionForm = () => {
         }
       }
       
-      let galleryImagesUrls = [...(values.galleryImages || [])];
-      if (galleryImageFiles.length > 0) {
-        for (let i = 0; i < galleryImageFiles.length; i++) {
-          const url = await uploadImage(galleryImageFiles[i], 'gallery');
+      // Handle existing gallery images and new uploads
+      const galleryImagesUrls: string[] = [];
+      const galleryItemsForSave: Array<{url: string; caption?: string; description?: string}> = [];
+      
+      // Process gallery items in their current order
+      for (let i = 0; i < galleryItems.length; i++) {
+        const item = galleryItems[i];
+        let imageUrl = item.url;
+        
+        // If this is a new file (File object), upload it
+        if (item.url && item.url instanceof File) {
+          const file = item.url;
+          const url = await uploadImage(file, 'gallery');
           if (url) {
-            galleryImagesUrls.push(url);
+            imageUrl = url;
           } else {
             toast({
               title: "Warnung",
               description: `Ein Galeriebild konnte nicht hochgeladen werden.`,
               variant: "destructive",
             });
+            continue; // Skip this item if upload failed
           }
+        }
+        
+        if (imageUrl && typeof imageUrl === 'string') {
+          galleryImagesUrls.push(imageUrl);
+          galleryItemsForSave.push({
+            url: imageUrl,
+            caption: (item.caption || '').trim() || undefined,
+            description: (item.description || '').trim() || undefined,
+          });
         }
       }
       
@@ -253,12 +272,6 @@ const ExhibitionForm = () => {
       
       const germanDate = format(new Date(values.date), 'dd. MMMM yyyy', { locale: de });
       const germanEndDate = values.endDate ? format(new Date(values.endDate), 'dd. MMMM yyyy', { locale: de }) : undefined;
-      
-      const galleryItemsForSave = galleryImagesUrls.map((url, i) => ({
-        url,
-        caption: (galleryItems[i]?.caption || '').trim() || undefined,
-        description: (galleryItems[i]?.description || '').trim() || undefined,
-      }));
       
       const exhibitionData = {
         title: values.title,
@@ -362,7 +375,7 @@ const ExhibitionForm = () => {
       
       const newPreviews = filesArray.map(file => URL.createObjectURL(file));
       setGalleryImagePreviews(prev => [...prev, ...newPreviews]);
-      setGalleryItems(prev => [...prev, ...filesArray.map(file => ({ url: URL.createObjectURL(file), caption: '', description: '' }))]);
+      setGalleryItems(prev => [...prev, ...filesArray.map(file => ({ url: file, caption: '', description: '' }))]);
       setGalleryCaptions(prev => [...prev, ...new Array(filesArray.length).fill('')]);
     }
   };
@@ -699,7 +712,7 @@ const ExhibitionForm = () => {
                             <div key={index} className="relative group">
                               <div className="aspect-square rounded-md overflow-hidden border border-stone-200">
                                 <img 
-                                  src={src} 
+                                  src={galleryItems[index]?.url instanceof File ? URL.createObjectURL(galleryItems[index].url as File) : (galleryItems[index]?.url || src)} 
                                   alt={`Gallery ${index}`} 
                                   className="w-full h-full object-cover"
                                 />
