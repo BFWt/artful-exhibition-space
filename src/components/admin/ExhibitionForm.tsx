@@ -37,7 +37,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Image, Plus, X, Music, User, Coffee, AlertTriangle, Calendar as CalendarIcon2 } from 'lucide-react';
+import { CalendarIcon, Image, Plus, X, Music, User, Coffee, AlertTriangle, Calendar as CalendarIcon2, ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
@@ -371,14 +371,48 @@ const ExhibitionForm = () => {
     setGalleryImagePreviews(prev => prev.filter((_, i) => i !== index));
     setGalleryItems(prev => prev.filter((_, i) => i !== index));
     setGalleryCaptions(prev => prev.filter((_, i) => i !== index));
+    setGalleryImageFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const moveGalleryItemUp = (index: number) => {
+    if (index === 0) return;
     
-    if (index >= (form.getValues().galleryImages?.length || 0)) {
-      const newFileIndex = index - (form.getValues().galleryImages?.length || 0);
-      setGalleryImageFiles(prev => prev.filter((_, i) => i !== newFileIndex));
-    } else {
-      const currentGalleryImages = form.getValues().galleryImages || [];
-      form.setValue('galleryImages', currentGalleryImages.filter((_, i) => i !== index));
-    }
+    const newPreviews = [...galleryImagePreviews];
+    const newItems = [...galleryItems];
+    const newCaptions = [...galleryCaptions];
+    const newFiles = [...galleryImageFiles];
+    
+    // Swap with previous item
+    [newPreviews[index], newPreviews[index - 1]] = [newPreviews[index - 1], newPreviews[index]];
+    [newItems[index], newItems[index - 1]] = [newItems[index - 1], newItems[index]];
+    [newCaptions[index], newCaptions[index - 1]] = [newCaptions[index - 1], newCaptions[index]];
+    [newFiles[index], newFiles[index - 1]] = [newFiles[index - 1], newFiles[index]];
+    
+    setGalleryImagePreviews(newPreviews);
+    setGalleryItems(newItems);
+    setGalleryCaptions(newCaptions);
+    setGalleryImageFiles(newFiles);
+  };
+
+  const moveGalleryItemDown = (index: number) => {
+    if (index === galleryImagePreviews.length - 1) return;
+    
+    const newPreviews = [...galleryImagePreviews];
+    const newItems = [...galleryItems];
+    const newCaptions = [...galleryCaptions];
+    const newFiles = [...galleryImageFiles];
+    
+    // Swap with next item
+    [newPreviews[index], newPreviews[index + 1]] = [newPreviews[index + 1], newPreviews[index]];
+    [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
+    [newCaptions[index], newCaptions[index + 1]] = [newCaptions[index + 1], newCaptions[index]];
+    [newFiles[index], newFiles[index + 1]] = [newFiles[index + 1], newFiles[index]];
+    
+    setGalleryImagePreviews(newPreviews);
+    setGalleryItems(newItems);
+    setGalleryCaptions(newCaptions);
+    setGalleryImageFiles(newFiles);
+
   };
 
   const getIconComponent = (iconName: string) => {
@@ -670,12 +704,33 @@ const ExhibitionForm = () => {
                                   className="w-full h-full object-cover"
                                 />
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => removeGalleryImage(index)}
-                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="h-4 w-4" />
+                               <div className="absolute top-2 left-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                 <button
+                                   type="button"
+                                   onClick={() => moveGalleryItemUp(index)}
+                                   disabled={index === 0}
+                                   className="p-1 bg-blue-500 text-white rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                   title="Nach oben verschieben"
+                                 >
+                                   <ChevronUp className="h-3 w-3" />
+                                 </button>
+                                 <button
+                                   type="button"
+                                   onClick={() => moveGalleryItemDown(index)}
+                                   disabled={index === galleryImagePreviews.length - 1}
+                                   className="p-1 bg-blue-500 text-white rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                   title="Nach unten verschieben"
+                                 >
+                                   <ChevronDown className="h-3 w-3" />
+                                 </button>
+                               </div>
+                               <button
+                                 type="button"
+                                 onClick={() => removeGalleryImage(index)}
+                                 className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                 title="Bild entfernen"
+                               >
+                                 <X className="h-4 w-4" />
                               </button>
                                <div className="mt-2 space-y-2">
                                  <Input
