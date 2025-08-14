@@ -37,7 +37,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Image, Plus, X, Music, User, Coffee, AlertTriangle, Calendar as CalendarIcon2 } from 'lucide-react';
+import { CalendarIcon, Image, Plus, X, Music, User, Coffee, AlertTriangle, Calendar as CalendarIcon2, ChevronUp, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
@@ -76,6 +76,7 @@ const ExhibitionForm = () => {
   const [galleryImageFiles, setGalleryImageFiles] = useState<File[]>([]);
   const [galleryImagePreviews, setGalleryImagePreviews] = useState<string[]>([]);
   const [galleryCaptions, setGalleryCaptions] = useState<string[]>([]);
+  const [galleryItems, setGalleryItems] = useState<{ url: string | File; caption?: string; description?: string }[]>([]);
   const [uploading, setUploading] = useState(false);
   const [selectedStartDate, setSelectedStartDate] = useState<Date | undefined>(new Date());
   const [selectedEndDate, setSelectedEndDate] = useState<Date | undefined>(undefined);
@@ -178,6 +179,11 @@ const ExhibitionForm = () => {
           ? exhibition.galleryItems.map(i => i.url)
           : (exhibition.galleryImages || []);
         setGalleryImagePreviews(galleryUrls);
+        setGalleryItems(
+          (exhibition.galleryItems && exhibition.galleryItems.length > 0)
+            ? exhibition.galleryItems
+            : galleryUrls.map(url => ({ url, caption: '', description: '' }))
+        );
         setGalleryCaptions(
           (exhibition.galleryItems && exhibition.galleryItems.length > 0)
             ? exhibition.galleryItems.map(i => i.caption || '')
@@ -215,19 +221,38 @@ const ExhibitionForm = () => {
         }
       }
       
-      let galleryImagesUrls = [...(values.galleryImages || [])];
-      if (galleryImageFiles.length > 0) {
-        for (let i = 0; i < galleryImageFiles.length; i++) {
-          const url = await uploadImage(galleryImageFiles[i], 'gallery');
+      // Handle existing gallery images and new uploads
+      const galleryImagesUrls: string[] = [];
+      const galleryItemsForSave: Array<{url: string; caption?: string; description?: string}> = [];
+      
+      // Process gallery items in their current order
+      for (let i = 0; i < galleryItems.length; i++) {
+        const item = galleryItems[i];
+        let imageUrl = item.url;
+        
+        // If this is a new file (File object), upload it
+        if (item.url && item.url instanceof File) {
+          const file = item.url;
+          const url = await uploadImage(file, 'gallery');
           if (url) {
-            galleryImagesUrls.push(url);
+            imageUrl = url;
           } else {
             toast({
               title: "Warnung",
               description: `Ein Galeriebild konnte nicht hochgeladen werden.`,
               variant: "destructive",
             });
+            continue; // Skip this item if upload failed
           }
+        }
+        
+        if (imageUrl && typeof imageUrl === 'string') {
+          galleryImagesUrls.push(imageUrl);
+          galleryItemsForSave.push({
+            url: imageUrl,
+            caption: (item.caption || '').trim() || undefined,
+            description: (item.description || '').trim() || undefined,
+          });
         }
       }
       
@@ -248,11 +273,6 @@ const ExhibitionForm = () => {
       const germanDate = format(new Date(values.date), 'dd. MMMM yyyy', { locale: de });
       const germanEndDate = values.endDate ? format(new Date(values.endDate), 'dd. MMMM yyyy', { locale: de }) : undefined;
       
-      const galleryItems = galleryImagesUrls.map((url, i) => ({
-        url,
-        caption: (galleryCaptions[i] || '').trim() || undefined,
-      }));
-      
       const exhibitionData = {
         title: values.title,
         subtitle: values.subtitle || '',
@@ -260,7 +280,7 @@ const ExhibitionForm = () => {
         artist: values.artist,
         coverImage: coverImageUrl,
         galleryImages: galleryImagesUrls,
-        galleryItems,
+        galleryItems: galleryItemsForSave,
         date: values.date,
         endDate: values.endDate || null,
         germanDate: germanDate,
@@ -355,21 +375,57 @@ const ExhibitionForm = () => {
       
       const newPreviews = filesArray.map(file => URL.createObjectURL(file));
       setGalleryImagePreviews(prev => [...prev, ...newPreviews]);
+      setGalleryItems(prev => [...prev, ...filesArray.map(file => ({ url: file, caption: '', description: '' }))]);
       setGalleryCaptions(prev => [...prev, ...new Array(filesArray.length).fill('')]);
     }
   };
 
   const removeGalleryImage = (index: number) => {
     setGalleryImagePreviews(prev => prev.filter((_, i) => i !== index));
+    setGalleryItems(prev => prev.filter((_, i) => i !== index));
     setGalleryCaptions(prev => prev.filter((_, i) => i !== index));
+    setGalleryImageFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const moveGalleryItemUp = (index: number) => {
+    if (index === 0) return;
     
-    if (index >= (form.getValues().galleryImages?.length || 0)) {
-      const newFileIndex = index - (form.getValues().galleryImages?.length || 0);
-      setGalleryImageFiles(prev => prev.filter((_, i) => i !== newFileIndex));
-    } else {
-      const currentGalleryImages = form.getValues().galleryImages || [];
-      form.setValue('galleryImages', currentGalleryImages.filter((_, i) => i !== index));
-    }
+    const newPreviews = [...galleryImagePreviews];
+    const newItems = [...galleryItems];
+    const newCaptions = [...galleryCaptions];
+    const newFiles = [...galleryImageFiles];
+    
+    // Swap with previous item
+    [newPreviews[index], newPreviews[index - 1]] = [newPreviews[index - 1], newPreviews[index]];
+    [newItems[index], newItems[index - 1]] = [newItems[index - 1], newItems[index]];
+    [newCaptions[index], newCaptions[index - 1]] = [newCaptions[index - 1], newCaptions[index]];
+    [newFiles[index], newFiles[index - 1]] = [newFiles[index - 1], newFiles[index]];
+    
+    setGalleryImagePreviews(newPreviews);
+    setGalleryItems(newItems);
+    setGalleryCaptions(newCaptions);
+    setGalleryImageFiles(newFiles);
+  };
+
+  const moveGalleryItemDown = (index: number) => {
+    if (index === galleryImagePreviews.length - 1) return;
+    
+    const newPreviews = [...galleryImagePreviews];
+    const newItems = [...galleryItems];
+    const newCaptions = [...galleryCaptions];
+    const newFiles = [...galleryImageFiles];
+    
+    // Swap with next item
+    [newPreviews[index], newPreviews[index + 1]] = [newPreviews[index + 1], newPreviews[index]];
+    [newItems[index], newItems[index + 1]] = [newItems[index + 1], newItems[index]];
+    [newCaptions[index], newCaptions[index + 1]] = [newCaptions[index + 1], newCaptions[index]];
+    [newFiles[index], newFiles[index + 1]] = [newFiles[index + 1], newFiles[index]];
+    
+    setGalleryImagePreviews(newPreviews);
+    setGalleryItems(newItems);
+    setGalleryCaptions(newCaptions);
+    setGalleryImageFiles(newFiles);
+
   };
 
   const getIconComponent = (iconName: string) => {
@@ -656,29 +712,66 @@ const ExhibitionForm = () => {
                             <div key={index} className="relative group">
                               <div className="aspect-square rounded-md overflow-hidden border border-stone-200">
                                 <img 
-                                  src={src} 
+                                  src={galleryItems[index]?.url instanceof File ? URL.createObjectURL(galleryItems[index].url as File) : (galleryItems[index]?.url || src)} 
                                   alt={`Gallery ${index}`} 
                                   className="w-full h-full object-cover"
                                 />
                               </div>
-                              <button
-                                type="button"
-                                onClick={() => removeGalleryImage(index)}
-                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                              >
-                                <X className="h-4 w-4" />
+                               <div className="absolute top-2 left-2 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                 <button
+                                   type="button"
+                                   onClick={() => moveGalleryItemUp(index)}
+                                   disabled={index === 0}
+                                   className="p-1 bg-blue-500 text-white rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                   title="Nach oben verschieben"
+                                 >
+                                   <ChevronUp className="h-3 w-3" />
+                                 </button>
+                                 <button
+                                   type="button"
+                                   onClick={() => moveGalleryItemDown(index)}
+                                   disabled={index === galleryImagePreviews.length - 1}
+                                   className="p-1 bg-blue-500 text-white rounded-full disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                   title="Nach unten verschieben"
+                                 >
+                                   <ChevronDown className="h-3 w-3" />
+                                 </button>
+                               </div>
+                               <button
+                                 type="button"
+                                 onClick={() => removeGalleryImage(index)}
+                                 className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                 title="Bild entfernen"
+                               >
+                                 <X className="h-4 w-4" />
                               </button>
-                              <div className="mt-2">
-                                <Input
-                                  placeholder="Bildtext (optional)"
-                                  value={galleryCaptions[index] || ''}
-                                  onChange={(e) => setGalleryCaptions(prev => {
-                                    const next = [...prev];
-                                    next[index] = e.target.value;
-                                    return next;
-                                  })}
-                                />
-                              </div>
+                               <div className="mt-2 space-y-2">
+                                 <Input
+                                   placeholder="Bildtext (optional)"
+                                   value={galleryItems[index]?.caption || ''}
+                                   onChange={(e) => {
+                                     const newItems = [...galleryItems];
+                                     if (!newItems[index]) {
+                                       newItems[index] = { url: galleryImagePreviews[index], caption: '', description: '' };
+                                     }
+                                     newItems[index] = { ...newItems[index], caption: e.target.value };
+                                       setGalleryItems(newItems);
+                                   }}
+                                 />
+                                 <textarea
+                                   placeholder="Beschreibung nur für Galerie-Ansicht (optional)"
+                                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-vertical min-h-[60px]"
+                                   value={galleryItems[index]?.description || ''}
+                                   onChange={(e) => {
+                                     const newItems = [...galleryItems];
+                                     if (!newItems[index]) {
+                                       newItems[index] = { url: galleryImagePreviews[index], caption: '', description: '' };
+                                     }
+                                     newItems[index] = { ...newItems[index], description: e.target.value };
+                                       setGalleryItems(newItems);
+                                   }}
+                                 />
+                               </div>
                             </div>
                           ))}
                         </div>
