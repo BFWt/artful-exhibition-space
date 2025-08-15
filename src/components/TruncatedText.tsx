@@ -59,7 +59,10 @@ const TruncatedText: React.FC<TruncatedTextProps> = ({
             <Button 
               variant="link" 
               className="p-0 h-auto text-stone-600 hover:text-stone-800 mt-2"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+              }}
             >
               Mehr anzeigen
             </Button>
