@@ -1,6 +1,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import TruncatedText from "@/components/TruncatedText";
 
 interface ExhibitionDetailDescriptionProps {
   description: string;
@@ -18,9 +19,7 @@ const ExhibitionDetailDescription: React.FC<ExhibitionDetailDescriptionProps> = 
     <h2 className="text-2xl font-serif font-medium mb-6 pb-2 border-b border-stone-200">
       Über die Ausstellung
     </h2>
-    <div className="prose prose-stone prose-lg max-w-none whitespace-pre-line">
-      {description}
-    </div>
+    <TruncatedText text={description} className="prose prose-stone prose-lg max-w-none" />
   </motion.div>
 );
 

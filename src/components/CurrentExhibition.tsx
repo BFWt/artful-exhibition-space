@@ -3,6 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays, User, Music, Coffee } from 'lucide-react';
 import { Exhibition, getExhibitionState } from '@/lib/supabase';
+import TruncatedText from '@/components/TruncatedText';
 
 interface CurrentExhibitionProps {
   exhibition: Exhibition;
@@ -123,11 +124,7 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
               <h3 className="font-serif text-xl font-medium text-stone-900 mb-2">
                 Über die Ausstellung
               </h3>
-              <div className="text-stone-600">
-                {description.split('\n').map((paragraph, idx) => (
-                  <p key={idx} className="mb-2">{paragraph}</p>
-                ))}
-              </div>
+              <TruncatedText text={description} />
             </div>
             
             {/* Program section removed */}
