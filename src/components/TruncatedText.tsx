@@ -54,30 +54,32 @@ const TruncatedText: React.FC<TruncatedTextProps> = ({
       </div>
       
       {isTruncated && (
-        <div onClick={(e) => e.stopPropagation()}>
-          <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                variant="link" 
-                className="p-0 h-auto text-stone-600 hover:text-stone-800 mt-2"
-              >
-                Mehr anzeigen
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-serif font-medium">
-                  {title}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="prose prose-stone prose-lg max-w-none whitespace-pre-line mt-4">
-                {text.split('\n').map((paragraph, idx) => (
-                  <p key={idx} className="mb-2">{paragraph}</p>
-                ))}
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button 
+              variant="link" 
+              className="p-0 h-auto text-stone-600 hover:text-stone-800 mt-2"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
+              Mehr anzeigen
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-serif font-medium">
+                {title}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="prose prose-stone prose-lg max-w-none whitespace-pre-line mt-4">
+              {text.split('\n').map((paragraph, idx) => (
+                <p key={idx} className="mb-2">{paragraph}</p>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
