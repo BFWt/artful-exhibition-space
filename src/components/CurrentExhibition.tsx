@@ -2,6 +2,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays, User, Music, Coffee } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Exhibition, getExhibitionState } from '@/lib/supabase';
 import TruncatedText from '@/components/TruncatedText';
 
@@ -100,19 +101,21 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
         
         {/* IMAGE NUR NOCH OHNE OVERLAY-TEXT */}
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-          <motion.div 
-            className="relative aspect-[4/3] overflow-hidden rounded-lg shadow-md"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            <img
-              src={coverImage || "/placeholder.svg"}
-              alt={title}
-              className={`h-full w-full object-cover object-center transition-all duration-700 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
-              onLoad={() => setImageLoaded(true)}
-            />
-          </motion.div>
+          <Link to={`/ausstellung/${exhibition.id}`}>
+            <motion.div 
+              className="relative aspect-[4/3] overflow-hidden rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <img
+                src={coverImage || "/placeholder.svg"}
+                alt={title}
+                className={`h-full w-full object-cover object-center transition-all duration-700 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
+                onLoad={() => setImageLoaded(true)}
+              />
+            </motion.div>
+          </Link>
           
           <motion.div 
             className="flex flex-col"
