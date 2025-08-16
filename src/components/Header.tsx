@@ -3,12 +3,16 @@ import React, { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'framer-motion';
+import LanguageToggle from './LanguageToggle';
+import { useTranslation } from '../hooks/useTranslation';
+import { headerTranslations } from '../translations/header';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const { scrollY } = useScroll();
   const headerRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const t = useTranslation(headerTranslations);
   
   // Transform header opacity and backdrop blur based on scroll position
   const headerOpacity = useTransform(scrollY, [0, 50], [1, 0.9]);
@@ -69,26 +73,27 @@ const Header: React.FC = () => {
                 to="/" 
                 className={`hover-link text-sm font-medium transition-colors hover:text-stone-600 ${location.pathname === '/' ? 'text-stone-900' : 'text-stone-600'}`}
               >
-                Startseite
+                {t.home}
               </Link>
               <Link 
                 to="/kommende" 
                 className={`hover-link text-sm font-medium transition-colors hover:text-stone-600 ${location.pathname === '/kommende' ? 'text-stone-900' : 'text-stone-600'}`}
               >
-                Kommende
+                {t.upcoming}
               </Link>
               <Link 
                 to="/archiv" 
                 className={`hover-link text-sm font-medium transition-colors hover:text-stone-600 ${location.pathname === '/archiv' ? 'text-stone-900' : 'text-stone-600'}`}
               >
-                Archiv
+                {t.archive}
               </Link>
               <Link 
                 to="/kontakt" 
                 className={`hover-link text-sm font-medium transition-colors hover:text-stone-600 ${location.pathname === '/kontakt' ? 'text-stone-900' : 'text-stone-600'}`}
               >
-                Kontakt
+                {t.contact}
               </Link>
+              <LanguageToggle />
             </nav>
             
             {/* Mobile menu button */}
@@ -125,29 +130,32 @@ const Header: React.FC = () => {
             className={`block py-2 text-base font-medium hover:bg-stone-50 hover:text-stone-700 ${location.pathname === '/' ? 'text-stone-900' : 'text-stone-600'}`}
             onClick={() => setIsMenuOpen(false)}
           >
-            Startseite
+            {t.home}
           </Link>
           <Link
             to="/kommende"
             className={`block py-2 text-base font-medium hover:bg-stone-50 hover:text-stone-700 ${location.pathname === '/kommende' ? 'text-stone-900' : 'text-stone-600'}`}
             onClick={() => setIsMenuOpen(false)}
           >
-            Kommende
+            {t.upcoming}
           </Link>
           <Link
             to="/archiv"
             className={`block py-2 text-base font-medium hover:bg-stone-50 hover:text-stone-700 ${location.pathname === '/archiv' ? 'text-stone-900' : 'text-stone-600'}`}
             onClick={() => setIsMenuOpen(false)}
           >
-            Archiv
+            {t.archive}
           </Link>
           <Link
             to="/kontakt"
             className={`block py-2 text-base font-medium hover:bg-stone-50 hover:text-stone-700 ${location.pathname === '/kontakt' ? 'text-stone-900' : 'text-stone-600'}`}
             onClick={() => setIsMenuOpen(false)}
           >
-            Kontakt
+            {t.contact}
           </Link>
+          <div className="py-2">
+            <LanguageToggle />
+          </div>
         </div>
       </motion.div>
     </motion.header>

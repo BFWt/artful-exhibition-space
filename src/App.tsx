@@ -14,6 +14,7 @@ import Admin from './pages/Admin';
 import Impressum from './pages/Impressum';
 import Datenschutz from './pages/Datenschutz';
 import { SupabaseProvider } from './lib/supabase';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { Toaster } from '@/components/ui/toaster';
 import './App.css';
 
@@ -25,7 +26,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <SupabaseProvider>
-          <Router>
+          <LanguageProvider>
+            <Router>
             <Routes>
               <Route path="/admin/*" element={<Admin />} />
               <Route path="/" element={<Layout><Outlet /></Layout>}>
@@ -39,8 +41,9 @@ function App() {
                 <Route path="*" element={<NotFound />} />
               </Route>
             </Routes>
-          </Router>
-          <Toaster />
+            </Router>
+            <Toaster />
+          </LanguageProvider>
         </SupabaseProvider>
       </TooltipProvider>
     </QueryClientProvider>
