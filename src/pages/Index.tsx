@@ -152,12 +152,11 @@ const Index = () => {
       
       {/* Current or Next Upcoming Exhibitions (ohne Label, Artist wird im Component angepasst) */}
       {displayExhibitions.map((exhibition) => (
-        <Link key={exhibition.id} to={`/ausstellung/${exhibition.id}`}>
-          <CurrentExhibition 
-            exhibition={exhibition}
-            isPast={getExhibitionState(exhibition) === 'past'} 
-          />
-        </Link>
+        <CurrentExhibition 
+          key={exhibition.id}
+          exhibition={exhibition}
+          isPast={getExhibitionState(exhibition) === 'past'} 
+        />
       ))}
       
       {/* Upcoming Exhibitions */}

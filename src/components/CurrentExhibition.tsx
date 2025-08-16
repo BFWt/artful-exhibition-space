@@ -2,7 +2,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays, User, Music, Coffee } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Exhibition, getExhibitionState } from '@/lib/supabase';
+import TruncatedText from '@/components/TruncatedText';
 
 interface CurrentExhibitionProps {
   exhibition: Exhibition;
@@ -42,76 +44,80 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        <div className="text-center mb-6">
-          <motion.span 
-            className={`tag text-xs mb-2 uppercase tracking-wider px-3 py-1 ${
-              exhibitionState === 'past' ? 'bg-stone-200 text-stone-600' : 
-              exhibitionState === 'current' ? 'bg-green-100 text-green-700' :
-              'bg-blue-100 text-blue-700'
-            }`}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
-            {exhibitionState === 'past' ? 'Vergangene Ausstellung' : 
-             exhibitionState === 'current' ? 'Aktuell' :
-             'Kommend'}
-          </motion.span>
+        <Link to={`/ausstellung/${exhibition.id}`} className="block">
+          <div className="text-center mb-6 cursor-pointer hover:opacity-80 transition-opacity">
+            <motion.span 
+              className={`tag text-xs mb-2 uppercase tracking-wider px-3 py-1 ${
+                exhibitionState === 'past' ? 'bg-stone-200 text-stone-600' : 
+                exhibitionState === 'current' ? 'bg-green-100 text-green-700' :
+                'bg-blue-100 text-blue-700'
+              }`}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              {exhibitionState === 'past' ? 'Vergangene Ausstellung' : 
+               exhibitionState === 'current' ? 'Aktuell' :
+               'Kommend'}
+            </motion.span>
 
-          {artist && (
-            <motion.p 
+            {artist && (
+              <motion.p 
+                className="mt-2 font-serif text-3xl sm:text-4xl font-medium tracking-tight text-stone-900"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              >
+                {artist}
+              </motion.p>
+            )}
+            
+            <motion.h2 
               className="mt-2 font-serif text-3xl sm:text-4xl font-medium tracking-tight text-stone-900"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              {artist}
-            </motion.p>
-          )}
-          
-          <motion.h2 
-            className="mt-2 font-serif text-3xl sm:text-4xl font-medium tracking-tight text-stone-900"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-          >
-            {title}
-          </motion.h2>
-          <motion.p
-            className="mt-2 text-lg text-stone-600"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            {formattedDate()}
-          </motion.p>
-          {subtitle && (
+              {title}
+            </motion.h2>
             <motion.p
-              className="mt-2 text-xl text-stone-600"
+              className="mt-2 text-lg text-stone-600"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.5 }}
             >
-              {subtitle}
+              {formattedDate()}
             </motion.p>
-          )}
-        </div>
+            {subtitle && (
+              <motion.p
+                className="mt-2 text-xl text-stone-600"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+              >
+                {subtitle}
+              </motion.p>
+            )}
+          </div>
+        </Link>
         
         {/* IMAGE NUR NOCH OHNE OVERLAY-TEXT */}
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-          <motion.div 
-            className="relative aspect-[4/3] overflow-hidden rounded-lg shadow-md"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            <img
-              src={coverImage || "/placeholder.svg"}
-              alt={title}
-              className={`h-full w-full object-cover object-center transition-all duration-700 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
-              onLoad={() => setImageLoaded(true)}
-            />
-          </motion.div>
+          <Link to={`/ausstellung/${exhibition.id}`}>
+            <motion.div 
+              className="relative aspect-[4/3] overflow-hidden rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <img
+                src={coverImage || "/placeholder.svg"}
+                alt={title}
+                className={`h-full w-full object-cover object-center transition-all duration-700 ${imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
+                onLoad={() => setImageLoaded(true)}
+              />
+            </motion.div>
+          </Link>
           
           <motion.div 
             className="flex flex-col"
@@ -123,11 +129,7 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
               <h3 className="font-serif text-xl font-medium text-stone-900 mb-2">
                 Über die Ausstellung
               </h3>
-              <div className="text-stone-600">
-                {description.split('\n').map((paragraph, idx) => (
-                  <p key={idx} className="mb-2">{paragraph}</p>
-                ))}
-              </div>
+              <TruncatedText text={description} />
             </div>
             
             {/* Program section removed */}
