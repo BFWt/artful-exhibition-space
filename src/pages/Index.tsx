@@ -6,9 +6,12 @@ import CurrentExhibition from '../components/CurrentExhibition';
 import ExhibitionCard from '../components/ExhibitionCard';
 import { useSupabase, getExhibitionState } from '@/lib/supabase';
 import { Exhibition } from '@/lib/supabase';
+import { useTranslation } from '../hooks/useTranslation';
+import { indexTranslations } from '../translations/index';
 
 const Index = () => {
   const { exhibitions, isLoading } = useSupabase();
+  const t = useTranslation(indexTranslations);
   
   const headerRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
@@ -125,7 +128,7 @@ const Index = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 1.2 }}
             >
-              Kunstgalerie & Event-Location
+              {t.tagline}
             </motion.p>
           </div>
         </div>
@@ -170,10 +173,10 @@ const Index = () => {
         >
           <div className="text-center mb-8">
             <h2 className="font-serif text-3xl font-medium tracking-tight text-stone-900">
-              Kommende Ausstellungen
+              {t.upcomingExhibitions}
             </h2>
             <p className="mt-2 text-stone-600">
-              Entdecken Sie unsere bevorstehenden Ausstellungen und Veranstaltungen
+              {t.upcomingDescription}
             </p>
           </div>
           
@@ -188,9 +191,9 @@ const Index = () => {
             </div>
           ) : (
             <div className="text-center py-10 text-stone-500">
-              Momentan sind keine kommenden Ausstellungen geplant.
+              {t.noUpcomingExhibitions}
               <br />
-              Besuchen Sie uns bald wieder für Updates.
+              {t.visitAgain}
             </div>
           )}
         </motion.div>
@@ -207,10 +210,10 @@ const Index = () => {
         >
           <div className="text-center mb-8">
             <h2 className="font-serif text-3xl font-medium tracking-tight text-stone-900">
-              Vergangene Ausstellungen
+              {t.pastExhibitions}
             </h2>
             <p className="mt-2 text-stone-600">
-              Eine Auswahl kürzlich beendeter Ausstellungen
+              {t.pastDescription}
             </p>
           </div>
 
@@ -225,13 +228,13 @@ const Index = () => {
             </div>
           ) : (
             <div className="text-center py-10 text-stone-500">
-              Noch keine vergangenen Ausstellungen.
+              {t.noPastExhibitions}
             </div>
           )}
 
           <div className="mt-10 text-center">
             <Link to="/archiv" className="text-stone-600 hover:text-stone-900 underline underline-offset-4">
-              Mehr im Archiv ansehen →
+              {t.moreInArchive}
             </Link>
           </div>
         </motion.div>

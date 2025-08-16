@@ -5,6 +5,8 @@ import { CalendarDays, User, Music, Coffee } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Exhibition, getExhibitionState } from '@/lib/supabase';
 import TruncatedText from '@/components/TruncatedText';
+import { useTranslation } from '../hooks/useTranslation';
+import { currentExhibitionTranslations } from '../translations/currentExhibition';
 
 interface CurrentExhibitionProps {
   exhibition: Exhibition;
@@ -13,6 +15,7 @@ interface CurrentExhibitionProps {
 
 const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPast = false }) => {
   const [imageLoaded, setImageLoaded] = React.useState(false);
+  const t = useTranslation(currentExhibitionTranslations);
   
   const {
     title,
@@ -56,9 +59,9 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              {exhibitionState === 'past' ? 'Vergangene Ausstellung' : 
-               exhibitionState === 'current' ? 'Aktuell' :
-               'Kommend'}
+              {exhibitionState === 'past' ? t.pastExhibition : 
+               exhibitionState === 'current' ? t.current :
+               t.upcoming}
             </motion.span>
 
             {artist && (
@@ -127,7 +130,7 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
           >
             <div className="mb-4">
               <h3 className="font-serif text-xl font-medium text-stone-900 mb-2">
-                Über die Ausstellung
+                {t.aboutExhibition}
               </h3>
               <TruncatedText text={description} />
             </div>
@@ -137,7 +140,7 @@ const CurrentExhibition: React.FC<CurrentExhibitionProps> = ({ exhibition, isPas
             {contributors && contributors.length > 0 && (
               <div className="mt-6">
                 <h3 className="font-serif text-xl font-medium text-stone-900 mb-2">
-                  Mitwirkende
+                  {t.contributors}
                 </h3>
                 <div className="flex flex-wrap gap-3 mt-2">
                   {contributors.map((contributor, index) => (
