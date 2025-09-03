@@ -33,11 +33,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 &copy; {new Date().getFullYear()} Alter Kiosk Berlin
               </p>
             </div>
-            <div className="mb-4 md:mb-0">
-              <p className="text-sm text-stone-400 italic">
-                Built with Lovable AI Prompting Art
-              </p>
-            </div>
             <div className="flex items-center space-x-6">
               <Link
                 to="/kontakt"

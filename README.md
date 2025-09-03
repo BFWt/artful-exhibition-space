@@ -1,69 +1,112 @@
-# Welcome to your Lovable project
+# Artful Exhibition Space
 
-## Project info
+A modern React application for showcasing art exhibitions, built with Vite, TypeScript, and Tailwind CSS.
 
-**URL**: https://lovable.dev/projects/0784ec41-af98-4130-8590-9cc535da7963
+## Features
 
-## How can I edit this code?
+- 🎨 Exhibition gallery with detailed views
+- 📱 Responsive design for all devices
+- 🌐 Multi-language support (German/English)
+- 🖼️ Image galleries with masonry layout
+- 📅 Exhibition timeline and archive
+- 🎯 Admin dashboard for content management
+- 🐳 Docker deployment ready
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, shadcn/ui components
+- **Routing**: React Router DOM
+- **State Management**: React Context
+- **Database**: Supabase (optional)
+- **Deployment**: Docker, GitHub Actions
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0784ec41-af98-4130-8590-9cc535da7963) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js 18+ 
+- npm or yarn
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Clone the repository:
+```bash
+git clone https://github.com/BFWt/artful-exhibition-space.git
+cd artful-exhibition-space
+```
 
-Follow these steps:
+2. Install dependencies:
+```bash
+npm install
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+4. Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Available Scripts
 
-**Use GitHub Codespaces**
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run build:dev` - Build in development mode
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Deployment
 
-## What technologies are used for this project?
+### Docker Deployment
 
-This project is built with .
+The project includes a Dockerfile for containerized deployment:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```bash
+# Build the Docker image
+docker build -t artful-exhibition-space .
 
-## How can I deploy this project?
+# Run the container
+docker run -p 8080:80 artful-exhibition-space
+```
 
-Simply open [Lovable](https://lovable.dev/projects/0784ec41-af98-4130-8590-9cc535da7963) and click on Share -> Publish.
+### Automated Deployment
 
-## I want to use a custom domain - is that possible?
+GitHub Actions workflow is configured for automatic deployment to VPS:
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+1. Set up the required secrets in your GitHub repository:
+   - `VPS_HOST` - Your VPS IP address
+   - `VPS_USER` - SSH username
+   - `VPS_SSH_KEY` - Private SSH key
+
+2. Push to the `main` branch to trigger automatic deployment
+
+See `SETUP_GUIDE.md` for detailed deployment instructions.
+
+## Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── ui/             # shadcn/ui components
+│   ├── admin/          # Admin dashboard components
+│   └── exhibition-detail/ # Exhibition detail components
+├── contexts/           # React contexts
+├── data/              # Static data and types
+├── hooks/             # Custom React hooks
+├── lib/               # Utility libraries
+├── pages/             # Page components
+└── translations/      # Internationalization
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/new-feature`
+3. Commit your changes: `git commit -am 'Add new feature'`
+4. Push to the branch: `git push origin feature/new-feature`
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
